@@ -444,10 +444,10 @@
       "offer_brief": "Кэмерон — последний страж Храма испытаний, соплеменник Избранного: чтобы выйти из храма, надо победить его в РУКОПАШНОЙ (без оружия, до признания поражения — НЕ насмерть). ЕДИНСТВЕННЫЙ мирный путь — УБЕДИТЬ его, что бой не нужен (канонический довод: «мы не знаем сил друг друга — случайно можем убить; зачем рисковать?»); убеждённый, он пропускает САМ: отпирает дверь за своей спиной и отходит. Награды/предметов за это нет, записи в Пип-Бое нет — это финал испытания, не журнальный квест.",
       "offer_brief_source": [
         "ACTEMVIL.MSG {104} 'I have the honor of being your final challenge. To continue in your quest you must defeat me in unarmed combat.'",
-        "ACTEMVIL.MSG {126} 'No, my friend, you need only defeat me. When the time comes, we will end the battle.' (бой до нокаута, не насмерть)",
-        "ACTEMVIL.MSG {168} 'Accidents do happen, so what if one of us inadvertently kills the other? Let's just end this now rather than take that chance, okay?' (довод игрока)",
-        "ACTEMVIL.MSG {169} 'Hmm... I see your point. ... Very well -- you may pass, Chosen One.' (успех) / {170} '...However, we must still do battle.' (провал)",
-        "ACTEMVIL.MSG {201} 'You have a tongue of purest silver, Chosen One.' (пост-проход: канон помнит проход словами)"
+        "ACTEMVIL.MSG {126} 'No, my friend, you need only defeat me. When the time comes, we will end the battle.' (the duel is to submission, not to the death)",
+        "ACTEMVIL.MSG {168} 'Accidents do happen, so what if one of us inadvertently kills the other? Let's just end this now rather than take that chance, okay?' (the player's argument)",
+        "ACTEMVIL.MSG {169} 'Hmm... I see your point. ... Very well -- you may pass, Chosen One.' (success) / {170} '...However, we must still do battle.' (failure)",
+        "ACTEMVIL.MSG {201} 'You have a tongue of purest silver, Chosen One.' (after the pass: the vanilla script remembers it was talked through, not fought)"
       ]
     },
     "guard": {
@@ -459,7 +459,7 @@
       "vs": "",
       "difficulty": 3,
       "fail_line": "Хм... Нет. Слова хороши, но испытание есть испытание — мы должны сразиться. Не бойся, я постараюсь не покалечить тебя.",
-      "source": "ваниль Node015 @0x378a: roll_vs_skill(dude,14=Speech,0) OR metarule(40,14)=is_skill_tagged(Speech). difficulty=3 => модификатор 0 (freeaction.cc (3-diff)*10) = ванильный roll с mod 0; vs пуст (ваниль неконтестная). Движок роллит в freedlg_turn.cc и применяет fx ТОЛЬКО при успехе; fail_line — честный отказ по мотивам {170}, голосится при провале."
+      "source": "The vanilla branch is Node015 @0x378a: roll_vs_skill(dude, 14=Speech, 0) OR metarule(40,14)=is_skill_tagged(Speech). difficulty=3 gives a modifier of 0 ((3 - difficulty) * 10 in the engine's free-action path), so the roll matches vanilla with no modifier, against the skill rather than a flat baseline. The roll is made once in the dialogue turn and the effect is applied only on success; the failure line is a shortened paraphrase of the vanilla message {170}, kept in the character's own voice."
     },
     "effect": {
       "proc": {
@@ -497,9 +497,9 @@
       "intent_descriptor": "научить игрока боевым навыкам — Кэмерон перед испытанием видит слабого бойца и подтягивает ему рукопашку и ближний бой (Безоружный +10, Холодное оружие +10; движок сам ополовинит тегнутый навык и упрётся в 300)",
       "offer_brief": "Кэмерон — последний страж Храма испытаний — перед боем замечает, что игрок слаб в боевых искусствах, и предлагает подучить его: рукопашке и ближнему бою. Если игрок просит научить — Кэмерон реально поднимает навыки Безоружный и Холодное оружие (ванильные +10/+10). Разовое: в Храме бываешь раз, и учит он до испытания.",
       "offer_brief_source": [
-        "ACTEMVIL.MSG {302} 'вижу, ты не так силён в боевых искусствах... я мог бы кое-чему тебя научить' (предложение обучить)",
-        "ACTEMVIL.MSG {303} 'да, буду рад' / {305} 'да, покажи, если можешь' (согласие ученика)",
-        "fo2_int_disasm actemvil.int: Node016a @0x3a96 mod_skill(3=Unarmed,10) + @0x3aa6 mod_skill(4=MeleeWeap,10) — gdialog-free эффект-нода, ровно +10 Безоружный и +10 Холодное"
+        "ACTEMVIL.MSG {302} 'вижу, ты не так силён в боевых искусствах... я мог бы кое-чему тебя научить' (the offer to teach)",
+        "ACTEMVIL.MSG {303} 'да, буду рад' / {305} 'да, покажи, если можешь' (the student agreeing)",
+        "fo2_int_disasm actemvil.int: Node016a @0x3a96 mod_skill(3=Unarmed,10) + @0x3aa6 mod_skill(4=MeleeWeap,10) — a dialogue-free effect node: exactly +10 Unarmed and +10 Melee Weapons"
       ]
     },
     "guard": {
@@ -539,8 +539,8 @@
       "intent_descriptor": "научить игрока ближнему бою — Джордан, деревенский мастер Арройо, подтягивает навык Холодного оружия (+10; движок ополовинит тегнутый, потолок 300)",
       "offer_brief": "Джордан в Арройо учит обращению с холодным оружием. Попросишь научить — навык Холодное оружие реально вырастет (+10, как в оригинале). Разовое.",
       "offer_brief_source": [
-        "SCRIPTS.LST:213 'ACJordan.int ; Jordan. Trains player in Melee' — прямое назначение NPC: тренер по Холодному оружию",
-        "fo2_int_disasm ACJordan.int: Node003 @0x257e mod_skill(4=MeleeWeap, 10) — ровно +10 Холодное оружие"
+        "SCRIPTS.LST:213 'ACJordan.int ; Jordan. Trains player in Melee' — the script list states the character's purpose outright: a Melee Weapons trainer",
+        "fo2_int_disasm ACJordan.int: Node003 @0x257e mod_skill(4=MeleeWeap, 10) — exactly +10 Melee Weapons"
       ]
     },
     "effect": {
@@ -574,7 +574,7 @@
       "intent_descriptor": "научить игрока рукопашному бою — Дракон, мастер боевых искусств Сан-Франциско, поднимает навык Безоружный (+5; движок ополовинит тегнутый, потолок 300)",
       "offer_brief": "Дракон в Сан-Франциско обучает рукопашному бою. Попросишь научить — Безоружный реально вырастет (+5, как в оригинале). Разовое.",
       "offer_brief_source": [
-        "fo2_int_disasm fcdragon.int: proc learn2 @0x6672 mod_skill(3=Unarmed, 5) — ровно +5 Безоружный (gdialog-free эффект-нода)"
+        "fo2_int_disasm fcdragon.int: proc learn2 @0x6672 mod_skill(3=Unarmed, 5) — exactly +5 Unarmed (a dialogue-free effect node)"
       ]
     },
     "effect": {
@@ -608,7 +608,7 @@
       "intent_descriptor": "научить игрока рукопашному бою — Ло Пэн, мастер боевых искусств Сан-Франциско, поднимает навык Безоружный (+5; движок ополовинит тегнутый, потолок 300)",
       "offer_brief": "Ло Пэн в Сан-Франциско обучает рукопашному бою. Попросишь научить — Безоружный реально вырастет (+5, как в оригинале). Разовое.",
       "offer_brief_source": [
-        "fo2_int_disasm fclopan.int: proc learn2 @0x669e mod_skill(3=Unarmed, 5) — ровно +5 Безоружный (gdialog-free эффект-нода)"
+        "fo2_int_disasm fclopan.int: proc learn2 @0x669e mod_skill(3=Unarmed, 5) — exactly +5 Unarmed (a dialogue-free effect node)"
       ]
     },
     "effect": {
@@ -642,12 +642,12 @@
       "intent_descriptor": "убедить Криса-заправщика, что ты новобранец из пополнения Анклава (я новобранец / из пополнения / меня прислали) — при успехе проверки Красноречия он вносит тебя в списки и выдаёт пароль",
       "offer_brief": "Крис — старик-заправщик на станции у дороги, ТАЙНЫЙ вахтёр Анклава: он отсеивает штатских и пропускает к базе Наварро только пополнение. Если игрок называется НОВОБРАНЦЕМ из пополнения (replacement) и звучит убедительно (движок бросает проверку Красноречия), Крис извиняется за проверку и объясняет: иди к ВОРОТАМ через лес за станцией, часовому назови ПАРОЛЬ — «SHEEPSHEAD» («ОВЕЧЬЯ ГОЛОВА»), и ДЕРЖИСЬ ТРОПЫ. Новобранцы являются ОДНИ — со свитой Крис сомневается («а почему ты не один?»). Успех даёт РЕАЛЬНЫЙ опыт (движок: 1500 XP, «You conned Chris to give you the password»). Никаких предметов/крышек это не даёт; пароль — знание, а не вещь. Если база поднята по тревоге — никакого зачисления.",
       "offer_brief_source": [
-        "CCCHRIS.MSG {190} 'Enclave? That a group or something?..' + {192} 'I want to join.' (вход в ветку)",
-        "CCCHRIS.MSG {193}/{194} 'Join up? You're a tribal! What makes you think they'd want a tribal(, and his posse no less)?' (партийная развилка ваниль: {194} = со спутниками)",
+        "CCCHRIS.MSG {190} 'Enclave? That a group or something?..' + {192} 'I want to join.' (the entry into the branch)",
+        "CCCHRIS.MSG {193}/{194} 'Join up? You're a tribal! What makes you think they'd want a tribal(, and his posse no less)?' (the vanilla fork on party size: {194} is the line used when companions are present)",
         "CCCHRIS.MSG {199}/{200} 'Wait a minute. Are you trying to say you're one of the Enclave replacements?'",
-        "CCCHRIS.MSG {203} 'Damn. Sorry for the hassles. I'm supposed to clear a bunch of newbies coming through here but I got to weed out the trash. Anyway, just go up to the gate, through the woods there, and give 'em the password. It's 'sheepshead.' Oh, and stay on the path!' (ЯДРО брифа: пароль + маршрут)",
-        "CCCHRIS.MSG {205}/{206} '…If that's the case, then why aren't you alone?' + {207}/{208} 'I hired an escort!' (партия = второй ролл, не жёсткий блок)",
-        "CCCHRIS.MSG {800} 'You conned Chris to give you the password.' (XP-строка Node997)"
+        "CCCHRIS.MSG {203} 'Damn. Sorry for the hassles. I'm supposed to clear a bunch of newbies coming through here but I got to weed out the trash. Anyway, just go up to the gate, through the woods there, and give 'em the password. It's 'sheepshead.' Oh, and stay on the path!' (the core of the brief: the password and the route)",
+        "CCCHRIS.MSG {205}/{206} '…If that's the case, then why aren't you alone?' + {207}/{208} 'I hired an escort!' (arriving with companions costs a second roll rather than blocking outright)",
+        "CCCHRIS.MSG {800} 'You conned Chris to give you the password.' (the experience line of Node997)"
       ]
     },
     "guard": {
@@ -659,13 +659,13 @@
       "vs": "",
       "difficulty": 4,
       "fail_line": "Слушай, приятель, не пойми превратно — но ничего тут нет, кроме пустошей да радиации. Цивилизация к югу отсюда. Туда бы и шёл, пока светло.",
-      "source": "ваниль Node019a @0x316c / Node019b @0x3208 / Node022a @0x3462: roll_vs_skill(dude,14=Speech,-10). difficulty=4 => модификатор (3-4)*10 = -10 = ванильный. vs пуст (неконтестная). fail_line — честный отвод по мотивам {143}/{209} (brush-off класс); при провале движок fx НЕ применяет, mvar0 не тронут."
+      "source": "The vanilla branches are Node019a @0x316c, Node019b @0x3208 and Node022a @0x3462: roll_vs_skill(dude, 14=Speech, -10). difficulty=4 gives (3 - 4) * 10 = -10, the same penalty, against the skill. The failure line is a shortened paraphrase of the vanilla brush-off messages {143}/{209}; on failure no effect is applied at all and map variable 0 stays where it was."
     },
     "effect": {
       "proc": {
         "script": "ccchris",
         "proc": "Node997",
-        "does": "set_map_var(0,1) + one-shot (lvar10==0) display {800} + give_exp_points(1500); НОЛЬ gdialog-опкодов (display_msg/give_exp = world-ops, exec_proc-safe по суженному правилу GATEPASS-MAPVAR-LOCALVAR)"
+        "does": "set_map_var(0,1) + a one-shot (lvar10==0) display of message {800} + give_exp_points(1500); no dialogue opcodes at all — display_msg and give_exp are world operations, which is what makes the procedure safe to call outside a dialogue."
       },
       "post": [
         "map_var(0)==1"
@@ -700,12 +700,12 @@
       "offer_brief": "Часовой в силовой броне у ворот базы Наварро («Стой! Федеральная собственность — вход только по допуску»). Пропускает ТОЛЬКО новобранца, которого зачислил Крис-заправщик (иначе про пополнение он и слушать не станет), ПООДИНОЧКЕ и ПО ПАРОЛЮ: пароль — «SHEEPSHEAD» («ОВЕЧЬЯ ГОЛОВА»), его выдаёт Крис на заправке. Со спутниками часовой кладёт руку на оружие: «все новобранцы являются на службу ОДНИ» — вели свите ждать в стороне и подойди один. При верном пароле сверяется («Минуту. (пауза) Так, ты в списках») и пропускает: доложиться НАЧАЛЬНИКУ СТРОЕВОЙ ПОДГОТОВКИ (сержанту Дорнану) — через ворота, мимо будки (псарни), первая дверь направо. Никаких наград/предметов и записи в Пип-Бое — это пропуск через ворота, не квест. Пароль — или знаешь, или нет: никаких «уговорить без пароля»; без пароля — только предупреждения и, при упорстве, тревога.",
       "offer_brief_source": [
         "CCGGUARD.MSG {103} 'Halt! This is federal property — no admittance without proper authorization.'",
-        "CCGGUARD.MSG {109} 'I'm a new recruit. I was told you'd be expecting me.' (опция видна ТОЛЬКО при mvar0==1 — Крис зачислил)",
-        "CCGGUARD.MSG {124} 'I see. May I have your password?' + {126} 'Sheepshead.' (одиночке)",
-        "CCGGUARD.MSG {125} '(places hand on weapon) All new recruits are to report for duty alone…' / {132} (повторно со свитой) — партийный отказ",
-        "CCGGUARD.MSG {128} 'One moment. (pause) Okay, you check out. Report to the drill chief. Go through the gate, past the kennel, and it's the first door on the right.' (успех — ЕДИНСТВЕННАЯ механика: mvar14=2)",
-        "CCGGUARD.MSG {131} 'Halt! — Oh. I see you've returned and you're alone this time. All right, recruit, what's the password?' (реткрай после увода свиты)",
-        "CCCHRIS.MSG {203} (источник пароля); ccdrill.msg {108} 'Welcome to Camp Navarro. So, you're the replacement…' (приёмник mvar0-состояния)"
+        "CCGGUARD.MSG {109} 'I'm a new recruit. I was told you'd be expecting me.' (the option is visible ONLY while map variable 0 == 1, meaning Chris has enlisted the player)",
+        "CCGGUARD.MSG {124} 'I see. May I have your password?' + {126} 'Sheepshead.' (said to a player who arrives alone)",
+        "CCGGUARD.MSG {125} '(places hand on weapon) All new recruits are to report for duty alone…' / {132} ({132} is the repeat line when the player comes back still escorted) — the refusal for arriving with companions",
+        "CCGGUARD.MSG {128} 'One moment. (pause) Okay, you check out. Report to the drill chief. Go through the gate, past the kennel, and it's the first door on the right.' (success — the ONLY mechanical consequence is map variable 14 = 2)",
+        "CCGGUARD.MSG {131} 'Halt! — Oh. I see you've returned and you're alone this time. All right, recruit, what's the password?' (the line on returning after sending the companions away)",
+        "CCCHRIS.MSG {203} (where the password comes from); ccdrill.msg {108} 'Welcome to Camp Navarro. So, you're the replacement…' (the consumer of the enlisted state)"
       ]
     },
     "guard": {

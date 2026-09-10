@@ -17,6 +17,12 @@ adversarial run that tries to break all of it.
 
 Standard library only. No dependencies, no network, no model, no game required to run any of it.
 
+A note on language before you read the code. Everything written by a person about the system —
+documentation, comments, docstrings, log lines — is English. Everything the system itself matches on
+or produces is in the language of the game it runs inside: the patterns that classify what a player
+typed, the text handed to the narrating model, the briefs a character pitches, the corpus extracted
+from the game's own files. Translating those would not tidy the repository, it would break it.
+
 ## Verify it in two minutes
 
 ```bash
