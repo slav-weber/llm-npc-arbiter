@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "quest_id": "arroyo_temple_gate_pass",
+  "gvar": 10,
+  "no_journal": true,
+  "_no_journal_note": "ENGINE-GATE record, NOT a Pip-Boy journal quest. gvar 10 (GVAR_START_ARROYO_TRIAL) is NOT in quests.txt — it tracks the Temple-of-Trials final challenge outcome, not a journal entry. This record exists ONLY to feed the atom_gvars manifest (guard_gvars 10, 369) so the brain can perceive the trial state and the arroyo_cameron_pass gate_pass atom's durable guard works. status=DRAFT: get()->None, so it never drives a journal prompt; the atom's own offer_brief grounds the reply. The drift check skips no_journal records.",
+  "name": "Храм испытаний — мирный проход мимо Кэмерона (не журнальный гейт)",
+  "display_threshold": 0,
+  "completed_threshold": 2,
+  "area": "Arroyo",
+  "maps": [3],
+  "_maps_note": "Map 003 = ARCAVES (Temple of Trials caves) — Cameron stands at the exit door (scenery pid 934). Map 004 (ARVILLAG) carries a second Cameron instance. No scripted teleport in this gate.",
+  "npcs": {
+    "giver": "actemvil",
+    "_giver_note": "actemvil = Cameron (ACTemVil.int), the final unarmed-combat challenge of the Temple of Trials. The 'giver' framing is nominal — this is a gate, not a journal quest."
+  },
+  "brief": "Кэмерон — последний страж Храма испытаний. Мирный проход мимо него = уговорить не драться (проверка Красноречия), тогда он отпирает дверь и отходит сам. Это финал испытания, не журнальный квест — записи в Пип-Бое нет.",
+  "stages": [
+    { "val": 0, "phase": "offer",
+      "_src": "gvar 10 == 0: the trial is unresolved (neither by combat nor by talking). Cameron offers a fight; the peaceful path is to talk him out of it." },
+    { "val": 1, "phase": "in_progress",
+      "_src": "combat_p_proc W(10,1) — the fight has started / is under way. Not the finale: the player is still fighting (or won it unarmed)." },
+    { "val": 2, "phase": "done",
+      "_src": "Node015a @0x3848 W(10,2) — passed by WORD (the peaceful outcome). The door is unlocked by the critter_p_proc heartbeat on LVAR13==2." }
+  ],
+  "guard_gvars": [10, 369],
+  "_guard_gvars_note": "gvar 10 = GVAR_START_ARROYO_TRIAL (0=unresolved, 1=combat, 2=peaceful pass). gvar 369 = 'Cameron is dead' (destroy_p_proc W369,1, alongside W7,1=GVAR_ENEMY_ARROYO). Both emitted so the arroyo_cameron_pass atom's durable guard 'gvar(10)==0 AND gvar(369)==0' works: the atom fires ONLY while the trial is unresolved AND Cameron is alive — never overwriting a combat outcome (10=1) with the peaceful value (10=2), and never firing at a dead Cameron.",
+  "completion": {
+    "mechanism": "dialogue-outcome",
+    "owner": "dialogue",
+    "condition": "The peaceful pass is the ONLY brain-reachable outcome, gated by a REAL engine Speech roll. The arroyo_cameron_pass atom (intent gate_pass, check=Speech) fires exec_proc actemvil:Node015a ONLY on a successful roll (freedlg_turn.cc applies the deferred fx on success); Node015a sets LVAR12=1, LVAR13=2, MVAR20=2, GVAR10=2. The engine then opens the door via the vanilla critter_p_proc heartbeat (LVAR13==2 -> obj_unlock 0x812F + obj_open 0x8131 on scenery pid 934) and walks Cameron away. The brain never writes gvar 10 (setgvar rejects it — 10 is not in quests.txt); the outcome is proc-form + engine-rolled. Combat completion (10=1) and Cameron's death (369=1) are engine-owned and lock the guard.",
+    "sets": "gvar 10=2 (peaceful pass, via Node015a) | 10=1 (combat, engine) | 369=1 (Cameron killed, engine)",
+    "code_ref": "ACTemVil.int disasm: Node015 @0x378a roll_vs_skill(dude,14=Speech,0) OR metarule(40,14)=is_skill_tagged(Speech) -> success {169} option {171} -> Node015a @0x3848 (W local 12=1, W local 13=2, W map 20=2, W global 10=2; NO gsay/giq/gdialog opcodes, byte-scan 0x3848..0x389a); critter_p_proc reads LVAR13==2 -> 0x812F obj_unlock + 0x8131 obj_open on pid 33555366=0x20003A6 (scenery 934), walks Cameron via tiles 19728/22712/28715; combat_p_proc W(10,1); destroy_p_proc W(369,1)+W(7,1)+W(10,1). opcodes 0x80C2 opSetLocalVar / 0x80C4 opSetMapVar / 0x80C6 opSetGlobalVar."
+  },
+  "reward": {
+    "xp": null,
+    "xp_source": "NONE — Node015a contains no give_exp_points (byte-scan). The peaceful pass grants no XP/items/journal entry; it is the trial finale, not a rewarded quest.",
+    "caps": 0,
+    "items": [],
+    "notes": "No reward. anti-invention: never promise XP/items for the pass."
+  },
+  "anti_invention": [
+    "The brain must NEVER write gvar 10 — Node015a (peaceful, W10=2), combat_p_proc (W10=1) and destroy_p_proc (W10=1) are the only writers, all engine-side. The atom calls Node015a via exec_proc; it never replicates the writes.",
+    "The Speech check is a REAL engine roll (freeActionResolveCheck) — the model must not narrate a pass on a failed roll; the fail_line is voiced instead.",
+    "gvar 369 positional name in VAULT13.GAM is 'GVAR_DUMAR_STATUS' but its ACTUAL use here is 'Cameron killed' (destroy_p_proc writer) — trust the NUMBER, not the enum name.",
+    "The door is opened by the vanilla heartbeat, NOT by the atom — the atom only sets LVAR13=2 (via Node015a); the brain touches no scenery."
+  ],
+  "sources": {
+    "engine_binding": "NOT a quests.txt row (no_journal: gvar 10 is an engine-gate var, not a journal quest). Binding is the actemvil.int bytecode itself.",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM: position 10 = GVAR_START_ARROYO_TRIAL. Position 369 enum name 'GVAR_DUMAR_STATUS' does NOT match its actual use (Cameron death) — trust the number.",
+    "completion": "fo2_int_disasm actemvil.int: Node015 @0x378a (roll_vs_skill Speech + metarule 40,14); Node015a @0x3848 (W10=2, no UI opcodes); critter_p_proc LVAR13==2 -> obj_unlock/obj_open pid 0x20003A6; combat_p_proc W(10,1); destroy_p_proc W(369,1)+W(7,1)+W(10,1).",
+    "offer_text": "unpacked/master/text/english/dialog/ACTEMVIL.MSG {104}/{126}/{168}/{169}/{170}/{171}/{201}",
+    "reference_shape": "quests/arroyo_nagor_dog.json (dialogue-outcome record); this one is no_journal (engine-gate) so display_threshold=0 and it never surfaces a journal prompt."
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "Node015a byte-scanned (0x3848..0x389a) = pure effect node, zero UI opcodes; Node015 gate = roll_vs_skill(Speech,0) OR is_skill_tagged; door via critter_p_proc LVAR13==2 heartbeat. gvar 10/369 write sites cross-checked (combat_p_proc, Node015a, destroy_p_proc).",
+    "live_test": "PENDING — to verify in-game on ARCAVES (Map 003): talk Cameron, gate_pass on a successful Speech roll fires exec_proc actemvil:Node015a, the door (pid 934) opens and Cameron walks away; a failed roll voices the fail_line and does not pass; the guard blocks a re-fire after combat (10=1) or Cameron's death (369=1)."
+  },
+  "status": "DRAFT",
+  "_status_note": "DRAFT: the mechanical half (guard_gvars 10,369 for the manifest; the byte-verified Node015a/heartbeat identity) is what this record contributes. get()->None so it drives NO journal prompt — the arroyo_cameron_pass atom's offer_brief grounds the free-dialogue reply. Flip verified.live_test on the in-game pass."
+}

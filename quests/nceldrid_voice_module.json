@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "quest_id": "newreno_eldridge_voice_module",
+  "gvar": 350,
+  "no_journal": true,
+  "_no_journal_note": "ENGINE-GATE record: buying the Vault-Tec voice module from Eldridge is NOT a journal quest and NOT barter — vanilla sells it through a SPECIAL dialogue branch, ncEldrid {420}-{482} (the module is not in his inventory: Node022 creates it out of thin air; the caps check sits on the VISIBILITY of the options; the one-shot is the bitmask LVAR4&512). It cannot be onboarded as an atom (there is no clean node: the debit, the handover and the gsay are smeared across several; the engine checks caps on option visibility and Node973 ignores the result of the debit; LVAR4 is a bitfield while setlvar writes an absolute value). The record exists for routing.node_roles: the special branch is tagged with the special_buy role by ENGINE TARGET — free dialogue walks the player along the REAL options, where the caps, the haggling and the handover are entirely engine-side. Key gvar 350: it is READ by Node019 of that very branch (a text variant; the positional name in .GAM is GRUTHAR_DSTATUS, a vanilla off-by-one for the intended JULES_ELDRIDGE 349 — trust the number and the fact that it is read).",
+  "name": "Нью-Рино — голосовой модуль Vault-Tec у Элдриджа (спец-ветка, не журнальный гейт)",
+  "display_threshold": 0,
+  "completed_threshold": 1,
+  "area": "New Reno",
+  "maps": [22],
+  "_maps_note": "NEWR1 (Virgin Street) — Eldridge's gun shop. The map number is for reference; this record drives no journal prompts.",
+  "npcs": {
+    "giver": "nceldrid",
+    "_giver_note": "nceldrid = Eldridge, the New Reno gunsmith. 'giver' is nominal — this is a special purchase, not a quest."
+  },
+  "brief": "Голосовой модуль Vault-Tec (PID 356, прото-цена 3000) продаётся у Элдриджа ТОЛЬКО через особую ветку диалога: «что-нибудь особенное» ({255}) → показ модуля → цена $3000 (опция видна при кэпсах >= 3000) или торг до $2500 (Barter-ролл, ветка Node980). Списание и выдачу делает движок в нодах Node973/979/Node022 (one-shot LVAR4|=512). НИКОГДА не продавать модуль прозой/pay_caps/trade_buy.",
+  "stages": [
+    { "val": 0, "phase": "offer",
+      "_src": "gvar 350 == 0: the record's reference key (Node019 reads it to pick the branch's text variant). The fact that the module is still unsold lives in the script's LVAR4&512, not in a gvar." },
+    { "val": 1, "phase": "done",
+      "_src": "the record's terminal state (nominal; the engine tracks the sale with the LVAR4&512 bit, the gvar takes no part)." }
+  ],
+  "routing": {
+    "node_roles": [
+      { "script": "nceldrid", "proc": "node018", "role": "special_buy",
+        "_src": "the entry to the special branch: option {255} 'something special' (visible while (LVAR4&512)==0, Node005 @0x35b8-0x35fe) -> Node018 @0x4b68 {420}, showing the module." },
+      { "script": "nceldrid", "proc": "node019", "role": "special_buy",
+        "_src": "{423} -> Node019 @0x4c42 (line 430 + an IQ variant; the text variant reads gvar350)." },
+      { "script": "nceldrid", "proc": "node020", "role": "special_buy",
+        "_src": "{436}/{437} -> Node020 @0x4d78 {450}/{451}: the caps check sits on the VISIBILITY of the options (item_caps_total(dude)>=3000 @0x4da0; the haggle option {457} at glob35==19 AND caps>=1500 @0x4e56)." },
+      { "script": "nceldrid", "proc": "node973", "role": "special_buy",
+        "_src": "{452}/{386} -> Node973 @0x69f6: item_caps_adjust(dude,-3000) @0x6a02 + (self,+3000) -> call Node022 (handover + one-shot LVAR4|=512 @0x5014 + create_object_sid(356) @0x5030)." },
+      { "script": "nceldrid", "proc": "node980", "role": "special_buy",
+        "_src": "{457} haggle -> Node980 @0x6670: roll_vs_skill(Barter,0); crit or CH>8 -> LVAR4|=2048 + caps -1500; success -> Node021 {470} $2500." },
+      { "script": "nceldrid", "proc": "node979", "role": "special_buy",
+        "_src": "{471} (visible at caps>=2500) -> Node979: caps -2500/+2500 -> Node022 (handover)." }
+    ]
+  },
+  "completion": {
+    "mechanism": "dialogue-outcome",
+    "owner": "engine",
+    "condition": "The purchase is entirely engine-side, through REAL surfaced options (3-4 option_index picks: {255}->{423}->{436}->{452/386}, or the haggle branch): the caps gate on option visibility, the debit in Node973/979, the handover + one-shot in Node022 (LVAR4|=512, create_object_sid 356, add_mult_objs_to_inven). The brain writes NOTHING — the special_buy role only walks the model along the branches (the escort_join/pay class: routing by ENGINE TARGET, not by text).",
+    "sets": "LVAR4|=512 (sold, one-shot; on a kill destroy_p_proc puts the module in the corpse if the bit was not set) | caps: the engine",
+    "code_ref": "ncEldrid.int disasm (session 2026-07-17): Node005 @0x35b8-0x35fe gates {255} on (LVAR4&512)==0; Node018 @0x4b68; Node019 @0x4c42 (+ the gvar350 text variant); Node020 @0x4d78 (caps check @0x4da0, haggle gate @0x4e56); Node973 @0x69f6 (caps_adjust @0x6a02); Node980 @0x6670 (Barter roll); Node022 @0x4fc6 (LVAR4|=512 @0x5014, create 356 @0x5030, add @0x504a); destroy_p_proc @0x2dc4. Proto: 00000356.pro cost=3000 @0x30."
+  },
+  "reward": {
+    "xp": 0,
+    "caps": 0,
+    "items": ["Computer Voice Module (PID 356) — for caps, at the branch's engine price"],
+    "notes": "Not a reward — a purchase. anti-invention: no discounts or gifts beyond the vanilla branches."
+  },
+  "anti_invention": [
+    "The module is NOT sold in prose: no pay_caps/gift_item/trade_buy for it — only the scripted options of the special branch (the engine checks the caps itself, debits them and hands the module over).",
+    "The branch names the price: $3000, haggled down to $2500 through a REAL Barter roll (Node980) — the model does not haggle in prose.",
+    "Without >= 3000 caps the purchase option simply does NOT exist (an engine visibility gate): state the price honestly, do not invent instalment plans.",
+    "After the sale (LVAR4&512) the {255} entry disappears — there is one module and no second."
+  ],
+  "sources": {
+    "engine_binding": "NOT a quests.txt row (no_journal). Binding = ncEldrid.int bytecode + proto 00000356.pro.",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM: position 350 is positionally 'GRUTHAR_DSTATUS' — a vanilla off-by-one (JULES_ELDRIDGE 349 was intended); Node019 actually READS 350 (the text variant). Trust the number.",
+    "completion": "Full ncEldrid disassembly (2026-07-17); the byte anchors are in completion.code_ref.",
+    "offer_text": "unpacked/master/text/english/dialog/ncEldrid.msg {255},{420},{423},{430}-{437},{450}-{457},{470}-{471},{480}-{482}.",
+    "reference_shape": "quests/q10_arroyo_temple_gate.json (no_journal); the routing pattern from q102 (role by ENGINE TARGET)."
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "The atom route is refuted by three irreducible facts (there is no clean node; the caps are not enforced by the node — Node973 ignores the return value of item_caps_adjust; the LVAR4 bitmask cannot be expressed with setlvar). The option route = vanilla mechanics as they are.",
+    "live_test": "PENDING — live check: a rich player walks the options through to the purchase (caps debited, module in the inventory, {255} gone); a poor one has no purchase option at all; the haggle branch is rolled by the engine."
+  },
+  "status": "DRAFT",
+  "_status_note": "DRAFT: what it contributes is routing.node_roles (role_index does read DRAFT records: mechanical truth) + the documented mechanics. It drives no journal prompts. Flip live_test after a run."
+}

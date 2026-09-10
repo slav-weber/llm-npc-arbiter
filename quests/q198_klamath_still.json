@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "quest_id": "klamath_refuel_still",
+  "gvar": 198,
+  "name": "Заправить самогонный аппарат",
+  "name_note": "quests.txt row 1502,300,198,1,3 (desc msg 300; quests.msg {300} 'Refuel the still.'). VAULT13.GAM:207 GVAR_STILL_STATUS (name matches — still anchor on the NUMBER 198). Confirm the EXACT localized RU title from the game's russian quests.msg {300} and swap if it differs; the english/ corpus is all that ships.",
+  "display_threshold": 1,
+  "completed_threshold": 3,
+  "area": "Klamath",
+  "maps": [
+    9,
+    14
+  ],
+  "_maps_note": "Map 009 = Klamath Downtown (kladwtwn) where Whiskey Bob (KCBOB) and Sajag (KCSAJAG) stand; Map 014 = Klamath Grazing Area (klagraz, maps.txt:170-171) holds the still shack 'just south of town' (KCBOB.MSG {220}). NO load_map/teleport in KCBOB — the player WALKS south to the shack, so no go_now atom.",
+  "npcs": {
+    "giver": "kcbob",
+    "others": [
+      "kcsajag",
+      "kstill"
+    ]
+  },
+  "_npcs_note": "giver = Whiskey Bob (KCBOB.int). kstill.int = the still world-object whose use_obj_on_p_proc writes the completed value 3 when firewood is dumped in-window. KCSAJAG.int = Sajag, the ANTAGONIST giver of the opposing sabotage fork (198=4).",
+  "brief": "Виски-Боб (Whiskey Bob) в Кламате держит самогонный аппарат в лачуге к югу от города; гекконы покусали ему ногу, и он не может сам сходить его заправить, пока не прогоркло сусло. ЗАДАЧА ИГРОКА — прийти в лачугу и СВОИМИ РУКАМИ загрузить в аппарат дрова (использовать предмет «дрова/wood» НА объекте-аппарате), причём успеть в течение примерно суток — иначе партия хмельного испортится. Это не «принести Бобу вещь»: заправляешь сам аппарат на месте. За приём канон называет $50 (при торге $65) — но это НЕ гарантированная выплата движком, а награда по диалогу при возврате. Соблазн предать: Саджаг (Sajag) платит $50 за то, чтобы сдать ему, где аппарат — тогда Боб узнает и назовёт тебя обманщиком.",
+  "_brief_provenance": "GROUNDED in KCBOB.MSG {190} (still/$50 offer), {220} (dump firewood into the still, within a day or the hootch goes bad), {280}/{281} ($50/$65 turn-in pay), {270} (double-crosser); KCSAJAG.MSG {230}/{231} (Sajag pays $50 to know where the still is); kstill.MSG {110}/{130}/{140}.",
+  "stages": [
+    {
+      "val": 0,
+      "phase": "offer",
+      "_src": "KCBOB.MSG {190} offer, {220} how/where + deadline, {230} accept confirm."
+    },
+    {
+      "val": 1,
+      "phase": "in_progress",
+      "say": "Заправил уже мой аппарат? Не, вижу что нет. Не тяни — сусло скиснет.",
+      "point_to": "лачуга к югу от Кламата (Пастбища, klagraz) → загрузить дрова в самогонный аппарат; успеть примерно за сутки (KCBOB.MSG {220})",
+      "next_step": "Дело ИДЁТ. Иди в лачугу к югу от города, ИСПОЛЬЗУЙ дрова на самом аппарате (не неси Бобу — заправляй на месте) и успей до того, как партия скиснет (примерно сутки). Завершение объявлять игрок не должен — пока движок не засчитал заправку, дело НЕ сделано.",
+      "_src": "KCBOB.MSG {260} in-progress re-ask; accept KCBOB Node013 @0x3472 W(198,1) + @0x3470 W(458, game_time()+deadline)."
+    },
+    {
+      "val": 2,
+      "phase": "failed",
+      "say": "Запустил аппарат — да только виски на вкус будто уже прогоркло.",
+      "point_to": null,
+      "next_step": null,
+      "_src": "kstill.int use_obj_on_p_proc @0xaba W(198,2); kstill.MSG {130} 'you start up the still but the whiskey tastes like it has gone bad' — dumped too LATE (past the game_time deadline in gvar 458). Spoiled batch — this stage does NOT reach 3."
+    },
+    {
+      "val": 3,
+      "phase": "done",
+      "say": "Спасибо, что заправил аппарат. Вот твои деньги.",
+      "point_to": null,
+      "next_step": null,
+      "_src": "COMPLETED. kstill.int use_obj_on_p_proc @0xa6c W(198,3) (firewood in-window → success, XP via kstill.MSG {110}/{111}); SECOND writer KCBOB.int talk_p_proc @0x21be W(198,3) (time-gated). Turn-in pay narrated at KCBOB.MSG {280} ($50) / {281} ($65 haggled)."
+    },
+    {
+      "val": 4,
+      "phase": "failed",
+      "say": "…",
+      "point_to": null,
+      "next_step": null,
+      "_src": "198=4: KCSAJAG Node013 @0x3960 W(198,4) — the player TOLD SAJAG where the still is (betrayal chosen; the refuel will NOT happen). Bob does not know YET. FAILED, not done — an explicit stage so stage_for (nearest-at-or-below) can't resolve 198=4 (>= completed_threshold 3) to the val=3 'done' stage and have Bob thank the player for a refuel he sabotaged. Bob's own line comes at 198=5 (discovery); at 4 he is still oblivious, so no `say` is forced here."
+    },
+    {
+      "val": 5,
+      "phase": "failed",
+      "say": "Кто-то разнёс мой аппарат! А знал про него только ты. Убирайся с глаз, обманщик!",
+      "point_to": null,
+      "next_step": null,
+      "_src": "KCBOB.int Node950/Node955 @0x2bbe/@0x2bf2 W(198,5); KCBOB.MSG {270} 'double-crosser' — Bob discovered the still was smashed after you told Sajag (198=4). Betrayal fail branch of the SAME gvar."
+    }
+  ],
+  "routing": {
+    "node_roles": [
+      {
+        "script": "kcbob",
+        "proc": "node013",
+        "role": "accept",
+        "_src": "KCBOB.int Node013 @0x3472 — set_global_var(198,1) byte-exact (c0 01 00 00 00 c6 c0 01 00 00 00 01 80 c6). BUT @0x3470 it ALSO set_global_var(458, game_time()+~1day) — the deadline clock. Reached via accept option KCBOB.MSG {221} 'OK, I'll do it' → {230}. NOT a pure single-gvar data-delta."
+      }
+    ],
+    "accept": {
+      "owner": "dialogue",
+      "sets": "gvar 198=1 AND gvar 458=game_time()+deadline",
+      "via_atoms": [
+        "klamath_refuel_still_accept"
+      ],
+      "code_ref": "KCBOB.int Node013 @0x3472 W(198,1) + @0x3470 W(458, computed game_time via op 0x80ea) — COUPLED. RESOLVED (2026-07-03): the atom framework now HAS the computed-game-time write primitive — the accept atom emits `setgvar=198:1;stamptime=458:hours`, and the ENGINE (fxh_stamp_deadline) computes gvar 458 = game_time() + 1 game-day (faking-proof; the brain has no clock). So the deadline is armed faithfully at accept and the timed completion works."
+    },
+    "go_to_scene": {
+      "proc": null,
+      "does": "NO teleport — KCBOB has no load_map (MAP/TRANSITION ops: NONE). The player WALKS south to the still shack (Map 014, klagraz). No go_now atom."
+    }
+  },
+  "guard_gvars": [
+    68
+  ],
+  "_guard_note": "gvar 68 = GVAR_ENEMY_KLAMATH — KCBOB talk_p_proc R(68) offer gate; damage_p_proc W(68,1) if Bob is attacked. Offer also gated on gvar(198)==0 (not yet accepted).",
+  "spoil_gvar": 458,
+  "_spoil_note": "gvar 458 = GVAR_STILL_START — the game-time deadline stamp co-written at accept and READ by both value-3 gates (KCBOB talk @0x21aa, kstill @0xa58) against live game_time (op 0x80ea).",
+  "completion": {
+    "mechanism": "reach-place",
+    "_mechanism_true_class": "use-object-on — the player USES firewood on the still world-object (kstill use_obj_on_p_proc), engine-owned. Modeled under the schema's 'reach-place' enum (an engine-owned world-interaction write the brain does NOT route — same faking-proof family as kill/map-exit/escort). This is NOT the ESCALATE 'generic option-routed turn-in' (that is a DIALOGUE option needing a router); here the completion is a normal-gameplay world interaction the engine arbitrates, and gvar 198 is visible in the frame so the done-ack works.",
+    "owner": "engine",
+    "condition": "The player USES firewood (a Wood item) ON the still world-object (kstill.int) in the shack at Klamath Grazing Area (Map 014) WITHIN the game-time window stamped at accept in GVAR_STILL_START (gvar 458). kstill use_obj_on_p_proc @0xa6c sets 198=3 on an in-window fuel (success + XP, kstill.MSG {110}/{111}); if past the deadline it sets 198=2 instead (bad hootch, {130}); if the still is full it shows {140}. NOT A SOLE WRITER: KCBOB.int talk_p_proc @0x21be ALSO writes 198=3 behind the same game_time-vs-458 gate (a time-gated turn-in path on returning to Bob). owner=engine: the engine's use_obj_on hook + game_time comparison arbitrate; the brain routes NOTHING and never writes 198. Byte-exact both sites (c0 01 00 00 00 c6 c0 01 00 00 00 03 80 c6).",
+    "sets": "gvar 198=3",
+    "code_ref": "kstill.int use_obj_on_p_proc @0xa6c (W 198=3, in-window firewood) + KCBOB.int talk_p_proc @0x21be (W 198=3, time-gated). Both read gvar 458 vs game_time (op 0x80ea). SECOND writer recorded — corpus byte-sweep of gvar 198 across all 1443 scripts: value 3 written at exactly these 2 sites; value 1 @KCBOB Node013; value 2 @kstill @0xaba; value 4 @KCSAJAG Node013 @0x3960; value 5 @KCBOB Node950/955.",
+    "second_writer": "KCBOB.int talk_p_proc @0x21be W(198,3) — the completed value 3 is NOT sole-written; it also fires from Bob's greeting when the still was fuelled in-window."
+  },
+  "reward": {
+    "xp": null,
+    "caps": 50,
+    "caps_haggled": 65,
+    "paid_by": "kcbob",
+    "notes": "Canon NAMES the pay: $50 (KCBOB.MSG {190}/{220}/{280}), or $65 if haggled (KCBOB.MSG {240}/{281}). This is DIALOGUE-narrated turn-in pay on returning to Bob at 198==3, NOT a byte-pinned give_caps op verified in this sweep — treat the number as canon-stated, not engine-guaranteed. The in-window fuel also yields kstill XP (kstill.MSG {110}/{111}, amount not byte-pinned here)."
+  },
+  "fail": {
+    "expired": "Dumping firewood AFTER the gvar-458 game-time deadline → 198=2 (bad hootch, kstill.MSG {130}); the batch is spoiled and does not reach 3.",
+    "betrayal": "Telling Sajag where the still is → KCSAJAG Node013 @0x3960 W(198,4); Bob later discovers the smashed still → KCBOB Node950/955 W(198,5) → 'double-crosser' greeting (KCBOB.MSG {270}). The sabotage fork shares gvar 198 and pre-empts the refuel completion.",
+    "town_hostile": "gvar 68=1 (GVAR_ENEMY_KLAMATH) blocks the offer/accept — vanilla talk_p_proc R(68); attacking Bob → damage_p_proc W(68,1)."
+  },
+  "anti_invention": [
+    "The brain NEVER writes gvar 198 — the engine sets 198=3 when the player USES firewood on the still object in-window (kstill use_obj_on_p_proc) or via Bob's time-gated greeting; both are engine-arbitrated.",
+    "Completion is a USE-OBJECT-ON action at the still, NOT 'bring an item to Bob' and NOT a plain dialogue turn-in — the player physically dumps wood into the aparatus at the shack.",
+    "Completion is TIME-LIMITED (about one in-game day, GVAR_STILL_START gvar 458 vs live game_time). Do not assert it can be done at leisure; late fueling spoils the batch (198=2).",
+    "Value 2 = spoiled/too-late (bad hootch), NOT a progress step toward done; value 4 = told Sajag (betrayal), value 5 = Bob discovered sabotage (fail) — none of these are the completed state.",
+    "Reward $50/$65 is canon-STATED in KCBOB.MSG but was not byte-pinned to a give_caps op in this sweep — never promise it as an engine-guaranteed transfer.",
+    "The accept co-stamps gvar 458 with a computed game-time deadline — do not model accept as a bare 'set gvar 198=1'."
+  ],
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt:77 — '1502, 300, 198, 1, 3'",
+    "journal_title": "unpacked/master/text/english/game/quests.msg {300} 'Refuel the still.'; location quests.msg/{1502} 'Klamath'",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM:207 — GVAR_STILL_STATUS (198); GVAR_STILL_START (458) VAULT13.GAM:467; GVAR_ENEMY_KLAMATH (68)",
+    "accept": "KCBOB.int Node013 @0x3472 W(198,1) byte-exact + @0x3470 W(458, game_time()+deadline via op 0x80ea); offer KCBOB.MSG {190}/{220}/{230}",
+    "completion": "kstill.int use_obj_on_p_proc @0xa6c W(198,3) [in-window] + @0xaba W(198,2) [late]; SECOND writer KCBOB.int talk_p_proc @0x21be W(198,3); both gate on gvar 458 vs game_time. kstill.MSG {110}/{130}/{140}. Byte-exact verified.",
+    "betrayal_fork": "KCSAJAG.int Node013 @0x3960 W(198,4) (KCSAJAG.MSG {210}/{230}/{231}); KCBOB.int Node950/955 @0x2bbe/@0x2bf2 W(198,5) (KCBOB.MSG {270})",
+    "maps": "unpacked/master/data/maps.txt — Map 009 kladwtwn (Bob/Sajag), Map 014 klagraz (still shack, 'south of town')",
+    "corpus_sweep": "byte-sweep of all ~1443 unpacked/master/scripts/*.int for gvar 198: writers = {KCBOB: 1,3,5,5; KCSAJAG: 4; kstill: 2,3}; readers = {KCBOB x7, KCSAJAG x4, kstill x1}"
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "BYTE-VERIFIED + REFUTED: (1) giver=Whiskey Bob KCBOB (Sajag is the antagonist fork, not the refuel giver) — confirmed via KCBOB.MSG {190} + Node013 W(198,1); (2) accept writer KCBOB Node013 @0x3472 byte-exact BUT co-writes gvar 458 (refutes 'pure data-delta accept'); (3) SOLE-writer claim REFUTED — value 3 has TWO byte-exact writers (kstill @0xa6c + KCBOB talk @0x21be); (4) thresholds 1/3 match quests.txt row, but gvar 198 is multi-value (2/4/5 also meaningful). Time gate reads gvar 458 (GVAR_STILL_START, confirmed VAULT13.GAM:467) via op 0x80ea game_time — NOT a msg-id misread; offer gate gvar 68 GVAR_ENEMY_KLAMATH confirmed.",
+    "live_test": "PENDING: talk to Whiskey Bob -> accept (198=1 + engine stamps 458=game_time()/hours via stamptime; watch the fx log for setgvar=1 + stamptime=1) -> walk to the still (Grazing Area, Map 014) -> USE firewood on the still. IN-window (elapsed<=24 game-hours) -> 198=3 (done); LATE (>24h, rest first) -> 198=2 (spoiled). A fix restored the spoil-late branch (earlier the deadline was effectively infinite). Requires a freshly rebuilt exe.",
+    "resolved": "PROMOTED TO DONE (2026-07-03): the coupled-accept blocker is closed by the new `stamptime` fx primitive (the engine computes gvar 458 = game_time()/hours (the accept hour) — the vanilla spoil gate fires on elapsed>24h; fxh_stamp_time, scoped to kAtomGuardGvars). Accept via klamath_refuel_still_accept (setgvar=198:1;stamptime=458:hours). Completion is engine-owned use-object (kstill use_obj_on, 198=3) — the brain routes nothing; 198 is frame-visible so the done-ack works. Multi-value fails (2 spoiled / 4 told-Sajag / 5 sabotage-discovered) are modeled as explicit failed stages. Timed STEERING (the brain warning about the deadline precisely) needs game-time in the frame — a polish-only gap, NOT a completion blocker (the engine gates the deadline)."
+  },
+  "status": "DONE"
+}

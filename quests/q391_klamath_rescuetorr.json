@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "quest_id": "klamath_rescue_torr",
+  "gvar": 391,
+  "name": "Спасти Торра",
+  "name_note": "quests.txt row 87 = '1502, 305, 391, 1, 2' (desc msg 305; quests.msg {305} 'Rescue Torr.'). VAULT13.GAM:400 GVAR_QUEST_RESCUE_TORR (enum name matches for once — still anchor on the NUMBER 391). Confirm the EXACT localized RU journal title from the game's russian quests.msg and swap if it differs.",
+  "display_threshold": 1,
+  "completed_threshold": 2,
+  "area": "Klamath",
+  "maps": [
+    48,
+    14
+  ],
+  "_maps_note": "Map 048 = 'Klamath Canyon' (klacanyn, maps.txt:466-470) — where Torr is found and from which he walks himself back to safety; KCTORR (Torr) critter lives/heartbeats here. Map 014 = 'Klamath Grazing Area' (klagraz) — the brahmin field east of which the canyon lies. Giver Ardin Buckner is in Klamath Downtown (Buckner House). No teleport, no go_now atom — the player WALKS the worldmap to the canyon.",
+  "npcs": {
+    "giver": "kcardin",
+    "others": [
+      "kctorr"
+    ]
+  },
+  "_npcs_note": "giver = Ardin Buckner (KCARDIN.int), Torr's mother at Buckner House. kctorr.int = Torr the simple herder, whose leave_player proc writes the completed value when he reaches safety.",
+  "brief": "Ардин Бакнер из Лагеря Клэмат — мать простодушного пастуха Торра. После истории с брамином её сын пропал (движок: gvar 71=1) и ушёл в каньон к востоку от пастбища, откуда, по его словам, приходили 'жукоглазые', уводившие скот. ЗАДАЧА ИГРОКА — добраться до Каньона Клэмат, найти Торра и вернуть его живым домой (спасти, а не просто 'разведать'). Торр уходит в безопасность сам, когда игрок его освобождает; засчитывает завершение движок. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+  "_brief_provenance": "Grounded in KCARDIN.MSG {270}{300}{310}{320}{330}{323} + quests.msg {305}; mechanical facts from byte-verified disasm.",
+  "stages": [
+    {
+      "val": 0,
+      "phase": "offer"
+    },
+    {
+      "val": 1,
+      "phase": "in_progress",
+      "say": "Мой мальчик Торр всё ещё где-то там, один. Не знаю, сколько он протянет — прошу, найди его.",
+      "point_to": "Каньон Клэмат (Map 048) — к востоку от пастбища брамина; Ардин указывает туда как на место, где искать Торра",
+      "next_step": "Дело ИДЁТ. Иди в Каньон Клэмат (к востоку от пастбища), найди Торра и выведи его в безопасность — тогда он вернётся домой сам. Если Торр погибнет — дело провалено. Завершение объявлять игрок не должен: пока движок не засчитал (Торр в безопасности), дело НЕ сделано."
+    },
+    {
+      "val": 2,
+      "phase": "done",
+      "say": "Ты нашёл моего мальчика! Спасибо — я уж думала, больше не увижу этого дурня.",
+      "point_to": null,
+      "next_step": null,
+      "_src": "KCARDIN.MSG {220}/{620} completion thank-you; engine writes 391=2 via KCTORR leave_player when Torr reaches safety."
+    }
+  ],
+  "routing": {
+    "node_roles": [
+      {
+        "script": "kcardin",
+        "proc": "Node950",
+        "role": "accept",
+        "_src": "KCARDIN.int Node950 @0x2f96 — set_global_var(391,1) byte-exact C0 01 00 00 01 87 C0 01 00 00 00 01 80 C6. Reached via accept option {323} 'Sounds as though that canyon would be a good place to start looking. I'll go look for your boy, Mrs. Buckner.' NO map op on the node (only Node920 in KCARDIN carries gfade)."
+      },
+      {
+        "script": "kctorr",
+        "proc": "Node940",
+        "role": "escort_join",
+        "_src": "KCTORR.int Node940 (proc[25], body @0x3886) — op_set_local_var(idx=10, val=1) @0x3894 = the FOLLOW flag that arms the escort. Surfaced from Node003 as options {132} 'Ook Torr. Let's get out of here.' / {133} 'We can talk later. Let's just get out of here now.' (both target Node940), presented in the accepted-quest state. Routing the player's 'пошли отсюда / выведу тебя / за мной' intent HERE runs the real vanilla proc -> local_var[10]=1 -> critter_p_proc heartbeat walks Torr to tile 19450 and fires leave_player (391=2). Handled by the escort_join router (dlg_guards _st_route_escort_join)."
+      }
+    ],
+    "_completion_writer_not_a_role": "KCTORR.int leave_player @0x316e — set_global_var(391,2) byte-exact C0 01 00 00 01 87 C0 01 00 00 00 02 80 C6 (and W(71,0)@0x316c clearing TORR_MISSING). CALLed from critter_p_proc @0x13d6 gated on Torr reaching a safe tile (~19450, dist<=14) on Map 048. This is ENGINE-OWNED (a critter heartbeat / party-leave callback), NOT a routable dialogue node — so it is intentionally NOT a node_role. See completion{} for the full ref.",
+    "accept": {
+      "owner": "dialogue",
+      "sets": "gvar 391=1",
+      "via_atoms": [
+        "klamath_rescue_torr_accept"
+      ],
+      "code_ref": "KCARDIN.int Node950 @0x2f96 — pure data-delta W(391,1), NO map op. Player walks to the canyon (no load_map / go-now node)."
+    },
+    "go_to_scene": {
+      "proc": null,
+      "does": "NO teleport — Ardin gives no key and no ride; the player walks the worldmap to Klamath Canyon (Map 048). No load_map/go-now node -> no go_now atom."
+    }
+  },
+  "guard_gvars": [
+    71,
+    68
+  ],
+  "_guard_gvars_note": "Offer gates: KCARDIN talk_p_proc reads R(71) (TORR_MISSING must be 1) and R(68) (GVAR_ENEMY_KLAMATH must be 0). 71 is set to 1 by KCTORR itself on the rustle drive-off and cleared to 0 by KCTORR leave_player alongside 391=2.",
+  "completion": {
+    "mechanism": "reach-place",
+    "_mechanism_true_class": "escort / party-follower — the escortee (Torr) becomes a temporary party member and the engine's leave_player callback fires when he reaches his safe tile. Modeled under the schema's 'reach-place' enum (an engine-owned reach-tile write) until a dedicated escort handler + live test exist. The completion is engine-owned + faking-proof; the OPEN piece is the free-dialogue JOIN (party_add) routing.",
+    "owner": "engine",
+    "condition": "Torr (kctorr.int) is found in Klamath Canyon (Map 048) and reaches safety: its critter_p_proc @0x13d6 CALLs leave_player once Torr reaches a safe tile (~tile 19450, distance<=14) — leave_player @0x316e sets gvar 391=2 (and W(71,0) clearing TORR_MISSING). SOLE writer of value 2 across all 1443 scripts (corpus byte-sweep: 391 written only by KCARDIN 391=1 x1 + KCTORR 391=2 x1). owner=engine: the engine's critter heartbeat drives the write; the brain routes NOTHING and never writes 391. THIS IS AN ESCORT / REACH-TILE COMPLETION — NOT a supported rows-only class (not kill destroy_p_proc, not map_exit_p_proc, not a make_leave-routed option, not greeting-auto). Escalated: the perception frame does not model follower/Torr-reached-safety state, and there is no router role for the rescue-initiation dialogue node that arms the heartbeat.",
+    "sets": "gvar 391=2",
+    "code_ref": "kctorr.int leave_player @0x316e (op_set_global_var 391=2, byte-exact C0 01 00 00 01 87 C0 01 00 00 00 02 80 C6; W(71,0)@0x316c). CALLed from critter_p_proc @0x13d6 (heartbeat, tile-proximity gate). Post-completion greeting: KCARDIN.MSG {220}/{620}."
+  },
+  "reward": {
+    "xp": 200,
+    "caps": null,
+    "paid_by": null,
+    "notes": "Canon names NO caps payment at accept OR turn-in (KCARDIN.MSG {270}/{300}/{323}/{220}/{620} carry no number). The engine grants +200 XP (byte: KCTORR leave_player @0x316e adds 200 XP + karma alongside 391=2). Never promise a caps sum — the return of Torr alive IS the reward."
+  },
+  "fail": {
+    "torr_dead": "If Torr is killed, kctorr.int destroy_p_proc writes W(70,1) (GVAR_TORR_DEAD) and W(102,3) — the quest FAILS (Ardin then gives the 'he's dead' branch, KCARDIN Node053 R(70),R(71)); 391 is NOT set. No timed/expiring fail branch.",
+    "town_hostile": "68=1 (GVAR_ENEMY_KLAMATH) blocks the offer/accept — KCARDIN talk_p_proc R(68) gate; attacking Ardin -> damage_p_proc W(68,1)."
+  },
+  "anti_invention": [
+    "Accept is a Pip-Boy journal flag ONLY (391=1) — no teleport; the player walks to Klamath Canyon himself.",
+    "The brain NEVER writes 391 — the engine sets 391=2 via KCTORR's leave_player heartbeat when Torr reaches safety.",
+    "Completion is Torr returning ALIVE. If Torr DIES (70=1 TORR_DEAD, 102=3) the quest FAILS — do NOT announce it done.",
+    "No reward number is named at accept (KCARDIN.MSG carries no caps figure) — invent no sum.",
+    "Do NOT assert killing the geckos alone completes it, nor that the player must party_add Torr — completion is the engine's tile/heartbeat escort event, not a dialogue turn-in."
+  ],
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt:87 — '1502, 305, 391, 1, 2'",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM:400 — GVAR_QUEST_RESCUE_TORR (name matches; number is truth)",
+    "completion": "kctorr.int leave_player W(391,2) @0x316e (byte-exact); SOLE writer of value 2 (corpus-wide *.int byte sweep of C0 01 00 00 01 87 C0 01 00 00 00 02 80 C6: only KCTORR)",
+    "accept": "KCARDIN.int Node950 @0x2f96 W(391,1) byte-exact; talk_p_proc R(71),R(68),R(69),R(391) gate; no load_map in accept path",
+    "precondition": "gvar 71 (GVAR_TORR_MISSING) set to 1 by KCTORR on the rustle drive-off (byte sweep W(71,1): KCTORR); cleared 71=0 by KCTORR leave_player with 391=2. gvar 102 (rustle) causally upstream (KCTORR destroy_p_proc W(102,3) on Torr death) — not a completion gate on 391.",
+    "maps": "unpacked/master/data/maps.txt:466-470 — [Map 048] Klamath Canyon / klacanyn; :168-171 [Map 014] Klamath Grazing Area / klagraz",
+    "offer_text": "unpacked/master/text/english/dialog/KCARDIN.MSG {270} deed/missing, {320}/{330} where+why (canyon, golden geckos), {323} accept, {300} post-accept, {310} in-progress re-ask, {220}/{620} completion",
+    "adversarial_refute": "Four load-bearing claims byte-re-decoded: (1) giver KCARDIN SOLE 391=1 writer; (2) accept W(391,1) @0x2f96 byte-exact; (3) SOLE completion W(391,2) KCTORR leave_player @0x316e byte-exact, corpus-unique; (4) thresholds 1/2 == quests.txt row 87. Classification refuted against all 4 rows-only classes — none match (write is in a critter heartbeat proc, not destroy/map_exit/make_leave-option/greeting-auto)."
+  },
+  "escalation": {
+    "reason": "ESCORT / REACH-TILE completion — 391=2 is written by KCTORR leave_player, invoked from critter_p_proc (heartbeat) when Torr reaches a safe tile on Map 048 while his follow flag (local_var[10]) is set.",
+    "resolved": "ESCORT_JOIN ROUTER BUILT (2026-07-03). The one open piece — routing the player's 'come with me / lead you out' intent to the vanilla arm-node — is now handled by the dialogue guards' _st_route_escort_join (+ the «РОЛЬ: увести в безопасность» option annotation), mirroring the make_leave router: it routes to the SURFACED escort_join option (KCTORR Node940) by engine target, so the engine runs the real proc (local_var[10]=1) and its heartbeat completes the escort. Completion (391=2) is engine-owned + faking-proof and the completed gvar is visible in the frame, so the completed-quest acknowledgment already works. In-flight follower perception (narrating 'Torr is following you') is a polish-only gap, NOT a completion blocker."
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "byte-verified + refuted: completion writer KCTORR leave_player @0x316e (391=2, SOLE writer corpus-wide, called from critter_p_proc heartbeat), accept KCARDIN Node950 @0x2f96 (391=1), thresholds 1/2, offer gate 71==1 AND 68==0. Classification = escort/reach-tile -> ESCALATE (not rows-only).",
+    "live_test": "PENDING: drive Torr off in the rustle (71=1) -> accept the rescue from Ardin (391=1) -> walk to Klamath Canyon Map 048 -> find Torr, say «пошли отсюда / выведу тебя» (escort_join routes to KCTORR Node940 -> local_var[10]=1) -> lead him to the cave exit (~tile 19450) -> engine heartbeat fires leave_player -> 391=2 -> Ardin acknowledges done. Escort_join handler BUILT (the escort-join router + the «РОЛЬ» option annotation); requires a live in-game run on a freshly built exe (gvar 71 now mirrored)."
+  },
+  "status": "DONE"
+}

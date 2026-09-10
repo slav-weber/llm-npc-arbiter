@@ -1,0 +1,25 @@
+{
+ "_comment": "Curated slice of the Fallout Bible (Chris Avellone's developer-canon document) + deep cross-game origin lore, distilled into IN-UNIVERSE facts (no meta/dev-commentary). Owner decision 2026-06-13: curated slice, not full distillation. Mostly era=prewar, fame=obscure -> only a worldly, sharp NPC surfaces these (deep lore, not common talk). Sourced/grounded via fallout.fandom.com/ru (CC-BY-SA). See .claude/docs/fo1-lore-and-bible-rag.md.",
+ "_source": "Fallout Bible (J.E. Sawyer/C. Avellone canon) + fallout.fandom.com/ru (CC-BY-SA)",
+ "_note": "FEV lives in lore_seed.json (tagged era=prewar/fame=obscure/source=bible there to keep it a single entry).",
+ "lore": [
+  {
+   "name": "Хронология пустоши",
+   "aliases": ["хронология", "таймлайн", "летоисчисление", "какой сейчас год", "сколько лет прошло"],
+   "region": null, "era": "prewar", "fame": "obscure", "spoiler_fo2": false, "source": "bible",
+   "desc": "Вехи времени: Великая Война — 23 октября 2077 года; поход Выходца из Убежища 13 за водяным чипом — около 2161; разгром Единства и гибель Создателя — 2162; из Шейди-Сэндс позже выросла НКР; события нынешнего похода Избранного за ГЭККом — 2241 год (около 80 лет после падения Создателя и 164 года после Войны)."
+  },
+  {
+   "name": "Волт-Тек",
+   "aliases": ["Vault-Tec", "Vault-Tec Corporation"],
+   "region": null, "era": "prewar", "fame": "obscure", "spoiler_fo2": false, "source": "bible", "domain": "science",
+   "desc": "Довоенный военный подрядчик, построивший сеть подземных Убежищ под предлогом спасения граждан от ядерной угрозы. По канону многие Убежища были не настоящими укрытиями, а тайными социальными экспериментами над их обитателями."
+  },
+  {
+   "name": "Коготь Смерти",
+   "aliases": ["Deathclaw", "Когти Смерти", "Когти смерти"],
+   "region": null, "era": "prewar", "fame": "obscure", "spoiler_fo2": false, "source": "bible", "domain": "science",
+   "desc": "Происхождение Когтей Смерти: выведены довоенным военным экспериментом из ДНК животных для боевых задач (сами твари известны всем как смертельная угроза, но их рукотворное происхождение — тайное знание). Огромные когти и рога, высокий рост и скорость; самки яростно защищают кладку."
+  }
+ ]
+}

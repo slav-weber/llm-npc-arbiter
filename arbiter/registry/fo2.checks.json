@@ -1,0 +1,30 @@
+{
+  "_comment": "BASE check-name registry. Russian name or synonym -> canonical engine token. The check-name normalizer loads every registry/*.checks.json (this base plus any mod file), so a content mod adds check names WITHOUT editing the core. skills -> the engine's skill tokens; stats -> SPECIAL abbreviations. Keys are matched lowercased. The keys below are Russian because the mod runs against a Russian-language game installation.",
+  "skills": {
+    "лёгкое оружие": "Small Guns", "легкое оружие": "Small Guns", "малое оружие": "Small Guns",
+    "стрелковое оружие": "Small Guns", "стрелковое": "Small Guns", "лёгкое": "Small Guns",
+    "тяжёлое оружие": "Big Guns", "тяжелое оружие": "Big Guns", "большое оружие": "Big Guns",
+    "энергооружие": "Energy Weapons", "энергетическое оружие": "Energy Weapons",
+    "безоружный": "Unarmed", "рукопашный бой": "Unarmed", "рукопашная": "Unarmed", "без оружия": "Unarmed",
+    "холодное оружие": "Melee Weapons", "ближний бой": "Melee Weapons", "холодное": "Melee Weapons",
+    "метание": "Throwing", "бросок": "Throwing", "метательное": "Throwing",
+    "первая помощь": "First Aid", "первая медицинская помощь": "First Aid", "медицина": "First Aid",
+    "доктор": "Doctor", "врач": "Doctor",
+    "скрытность": "Sneak", "скрытное передвижение": "Sneak", "незаметность": "Sneak", "крадучись": "Sneak",
+    "взлом": "Lockpick", "вскрытие замков": "Lockpick", "замки": "Lockpick", "отмычка": "Lockpick",
+    "воровство": "Steal", "кража": "Steal", "карманная кража": "Steal",
+    "ловушки": "Traps", "капканы": "Traps", "ловушка": "Traps",
+    "наука": "Science",
+    "ремонт": "Repair", "починка": "Repair",
+    "красноречие": "Speech", "речь": "Speech", "убеждение": "Speech",
+    "бартер": "Barter", "торговля": "Barter", "обмен": "Barter",
+    "азартные игры": "Gambling", "азарт": "Gambling",
+    "следопыт": "Outdoorsman", "натуралист": "Outdoorsman", "выживание": "Outdoorsman",
+    "запугивание": "Speech", "запугать": "Speech", "угроза": "Speech", "уговор": "Speech", "уговоры": "Speech",
+    "допрос": "Speech", "обман": "Speech", "блеф": "Speech", "лесть": "Speech", "соблазнение": "Speech"
+  },
+  "stats": {
+    "сила": "STR", "восприятие": "PER", "выносливость": "END", "обаяние": "CHA", "харизма": "CHA",
+    "интеллект": "INT", "ум": "INT", "ловкость": "AGI", "удача": "LCK", "везение": "LCK"
+  }
+}

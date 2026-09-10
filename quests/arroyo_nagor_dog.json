@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "quest_id": "arroyo_nagor_dog",
+  "gvar": 191,
+  "name": "Спасти пса Нагора (Дыма).",
+  "name_note": "Journal title, RU rendering of quests.msg {120} 'Rescue Nagor's dog, Smoke, from the wilds.' (Smoke = Дым). unpacked/master has only english/ text — the EXACT localized RU title should be confirmed from the game's russian quests.msg and swapped in if it differs. Anchor on the NUMBER 191 (quests.txt row '1500, 120, 191, 1, 5'). For 191 the VAULT13.GAM enum name GVAR_ARROYO_DOG happens to MATCH the row identity (rare; still trust the number, not the enum name).",
+  "display_threshold": 1,
+  "completed_threshold": 5,
+  "area": "Arroyo",
+  "maps": [4],
+  "_maps_note": "Map 004 = Arroyo Village — ACNagor stands here; BOTH the accept and the completion turn-in happen here (no scripted teleport). The completion PRECONDITION (191=2, set by acdog.int when Smoke is reached alive) fires on the Arroyo hunting-grounds SUB-MAP north of the village ('far side of Hakunin's tent', ACNAGOR.MSG {112}); the player WALKS there — that sub-map's index is NOT needed by any record field (no go_now atom) and is NOT byte-established (acdog's disasm cur_map_index[21] resolves to Map 021 'Modoc: Farrel's Garden', a proven map-heuristic misread — do NOT assert it).",
+  "npcs": {
+    "giver": "acnagor",
+    "obstacle": "acmorlis",
+    "others": ["acdog"]
+  },
+  "_npcs_note": "giver = Nagor (ACNagor.int), the Chosen One's young cousin, SOLE giver. obstacle = Aunt Morlis (she 'won't let me go find him', ACNAGOR.MSG {108}) — a NARRATIVE gate, not a gvar-191 writer. acdog.int = Smoke's own critter script — the ENGINE actor that sets the found-alive precondition 191=2.",
+  "brief": "Помоги Нагору, младшему двоюродному брату Избранного, вернуть его пса по кличке Дым. Пёс убежал на охотничьи угодья к северу от деревни — «за палаткой Хакунина» — и не вернулся, а тётушка Морлис не пускает самого Нагора искать его. ЗАДАЧА ИГРОКА — дойти до охотничьих угодий, отыскать Дыма ЖИВЫМ (там водятся гекконы) и вернуть его к Нагору. Награда каноном при приёме числом НЕ названа — обещай честную мальчишескую благодарность, без конкретной суммы. Квест в самом НАЧАЛЕ игры (Арройо), дойти легко.",
+  "_brief_provenance": "Grounded from the offer_source .MSG lines (ACNAGOR.MSG {100},{108},{112},{113},{114}/{117},{125}->{126} + quests.msg {120}). NOT byte-migrated from an atom registry — grounded flavor for the non-mechanical fields.",
+  "stages": [
+    { "val": 0, "phase": "offer" },
+    { "val": 1, "phase": "in_progress",
+      "say": "Дым всё ещё где-то на охотничьих угодьях — я его пока не нашёл.",
+      "point_to": "охотничьи угодья к северу от деревни, за палаткой Хакунина (ACNAGOR.MSG {112})",
+      "next_step": "Дело ИДЁТ (не закрыто). Иди на охотничьи угодья к СЕВЕРУ от деревни, за палаткой Хакунина; найди Дыма ЖИВЫМ (там гекконы — берегись) и приведи/верни его к Нагору. Завершение объявлять игрок не должен — пока движок не засчитал возвращение, дело НЕ сделано." },
+    { "val": 2, "phase": "in_progress",
+      "say": "Ты нашёл Дыма? Он жив?",
+      "point_to": "вернись к Нагору в деревню (Map 004)",
+      "next_step": "Дым НАЙДЕН ЖИВЫМ на угодьях (движок выставил 191=2 — предусловие сдачи). Теперь ВЕРНИСЬ к Нагору в деревню; при разговоре движок сам закроет дело (узел благодарности {125}->{126}).",
+      "_note": "val==2 is the engine-set 'found alive' PRECONDITION (acdog.int critter_p_proc), NOT a completed state; it GATES Nagor's turn-in greeting." },
+    { "val": 5, "phase": "done",
+      "say": "Ты нашёл Дыма! Спасибо тебе!",
+      "point_to": null,
+      "next_step": null,
+      "_src": "ACNAGOR.MSG {125}->{126} 'You found Smoke! Thanks!' -> 'You're welcome. Goodbye.'" },
+    { "val": 3, "phase": "in_progress",
+      "say": null,
+      "_src": "ACNagor Node002a/Node007a W(191,3) — intermediate 'decline / I'll go myself' talked-down arc ({105}/{120}/{121}/{123}).",
+      "_note": "NON-load-bearing: 191=3 semantics INFERRED from the .MSG, not byte-pinned." },
+    { "val": 4, "phase": "failed",
+      "say": null,
+      "_src": "acdog.int destroy_p_proc W(191,4) — Smoke killed. FAIL (the turn-in greeting is never surfaced)." },
+    { "val": 6, "phase": "failed",
+      "say": null,
+      "_src": "ACNagor Node006b W(191,6) — death reported to Nagor ({128} 'I miss Smoke...'). FAIL-acknowledged.",
+      "_note": "NON-load-bearing: 191=6 node label INFERRED from the .MSG, not byte-pinned." }
+  ],
+  "routing": {
+    "node_roles": [
+      { "script": "acnagor", "proc": "node003a", "role": "accept",
+        "_src": "ACNagor.int Node003a @0x2fe2 — set_global_var(191,1) then CALL Node004; byte-exact C001 push 191 / C001 push 1 / 80C6 opSetGlobalVar. Reached via accept option {109} 'Sure. But where are the hunting grounds?'." },
+      { "script": "acnagor", "proc": "node003b", "role": "accept",
+        "_src": "ACNagor.int Node003b @0x3022 — set_global_var(191,1); byte-exact. Reached via accept option {110} 'Sure. I'll find him right now.'." },
+      { "script": "acnagor", "proc": "node009", "role": "turn_in",
+        "_src": "ACNagor.int Node009 @0x3750 — set_global_var(191,5) (Dog_Finished_Good, the completed write); byte-exact C001 push 191 / C001 push 5 / 80C6. SOLE writer of value 5 corpus-wide (byte sweep of all 1443 scripts).",
+        "_note": "ENGINE-AUTO greeting, NOT a route target: talk_p_proc branches on gvar 191 and directly CALLs Node009 when 191==2 (talk_p_proc -> [... 'Node009' ...]; EQUAL(191,2) gate). So on RETURN to Nagor at 191==2 the completion fires on dialogue-open — the brain routes NOTHING. role='turn_in' is DOCUMENTATION; it is not one of the recognized routing roles (make_leave/pay/dead_end), so it is inert to the router by design." },
+      { "script": "acnagor", "proc": "node006b", "role": "dead_end",
+        "_src": "ACNagor.int Node006b @0x33da — set_global_var(191,6) (death reported to Nagor, {128}). FAIL-acknowledged end. Node/message mapping INFERRED." }
+    ],
+    "accept": {
+      "owner": "dialogue",
+      "sets": "gvar 191=1",
+      "via_atoms": ["arroyo_nagor_dog_accept"],
+      "code_ref": "ACNagor.int Node003a @0x2fe2 (W191=1 + CALL Node004) / Node003b @0x3022 (W191=1). display_threshold=1 -> Pip-Boy journal appears at 191>=1. Reached via ask {108} -> accept options {109}/{110}. The atom form is a pure setgvar (191 IS a quest gvar -> faking-proof), no exec_proc needed."
+    },
+    "go_to_scene": {
+      "proc": null,
+      "does": "NO scripted teleport — the player WALKS to the hunting grounds on the worldmap; acdog.int sets 191=2 on reaching Smoke alive. (Unlike Q102/Q182 there is NO load_map go-now node in the giver -> no go_now atom.)"
+    }
+  },
+  "guard_gvars": [191],
+  "deliverable": {
+    "kind": "critter",
+    "pid": 16777225,
+    "count": 1,
+    "name_ru": "Дым (Смок), пёс Нагора",
+    "aliases": ["Смок", "Смока", "Смоку", "Смоком", "Смоке",
+                "Дым", "Дыма", "Дыму", "Дымом", "Дыме",
+                "пёс", "пес", "пса", "псу", "псом", "псе",
+                "собак", "собака", "собаки", "собаке", "собаку", "собакой"],
+    "strict_aliases": ["Смок", "Смока", "Смоку", "Смоком", "Смоке"],
+    "expected_at": {"npc": "acnagor", "npc_pid": 16777219, "map": 4},
+    "present_when": ">=5",
+    "failed_when": ["==4", "==6"],
+    "owner": "engine"
+  },
+  "_deliverable_note": "PRESENCE-BLINDNESS FIX (2026-07-19). THE bug: 191 complete, Smoke standing ~5 tiles away, and Nagor denies him («А где он? Я не вижу его с тобой…» -> «Да нету тут никакого пса, братишка!»). Root cause: the engine perceive roster reached Python and was thrown away, while _PRESENCE_HONESTY_RULE's licensing clause («те, кого реально подал движок») had NO referent on either dialogue leg — so the guard degenerated into an unconditional denial rail. This block gives presence a POSITIVE channel. pid 16777225 = Smoke's proto (world_memory pipboy_ai.seen key '4_16777225_18009' — map 4, pid 16777225, obj id 18009; that record is written ONLY at tileDistanceBetween <= 5 on a LIVE critter, which is the proof he was perceivable). Joined on PID out of the perceive key, NEVER on the display name — he answers to BOTH «Смок» and «Дым». present_when '>=5' is READ FROM this record's own completed_threshold (5, quests.txt row '1500, 120, 191, 1, 5'), not guessed; 191==2 is only the found-alive PRECONDITION, so a dog perceived at 191==2 still resolves `here` (the roster match is checked BEFORE the predicate) while an UNSEEN dog at 191==2 honestly resolves `not_yet`. expected_at.map 4 = Arroyo Village (maps.txt) where BOTH the accept and the turn-in happen — EVERY verdict is scoped to it, so no NPC anywhere else in the game is handed a claim about this dog. expected_at.npc scopes the NEGATIVE verdicts (not_yet/gone) to the giver, so a third party is never told about, nor judged against, an unoffered quest.",
+  "_deliverable_scope_note": "aliases = the OWNER-scoped sanitizer match set (Нагор's own record legitimately says «пёс»/«собака»). strict_aliases = the ONLY forms allowed to match OUTSIDE that scope: «Дым» is the ordinary Russian word for smoke and «пёс»/«собака» are common nouns, and this list is a memory-DELETION set — letting it loose across every NPC's memory permanently destroyed unrelated true facts (adversarial review 2026-07-19: «Хакунин ждёт Клыка», «здесь пахнет дымом от костра»). failed_when = this record's OWN documented terminal fails (191==4 Smoke killed, acdog destroy_p_proc @0xba0; 191==6 death reported, ACNagor Node006b @0x33da) — they resolve UNKNOWN and render NOTHING, never «дело не доведено до конца» over a dead dog.",
+  "_guard_191_note": "The completion self-gates: Nagor's Node009 (W191=5) greeting is surfaced by talk_p_proc ONLY when 191==2 (engine-set by acdog.int). Emitting 191's live value on the snapshot lets the brain perceive whether the found-alive precondition is met (in_progress steer at 191==1 vs 191==2).",
+  "completion": {
+    "mechanism": "dialogue-outcome",
+    "owner": "dialogue",
+    "condition": "TWO-ACTOR, engine-gated chain, ENGINE-AUTO on return. STEP 1 (engine): player reaches Smoke ALIVE on the Arroyo hunting-grounds sub-map -> acdog.int critter_p_proc set_global_var(191,2) @0x9f4. STEP 2 (engine-auto on talk): player returns to Nagor; ACNagor.talk_p_proc reads gvar 191 and, IFF 191==2 (EQUAL @0x2290/@0x2a5a), directly CALLs the success GREETING node Node009 -> set_global_var(191,5) @0x3750, reply {125}->{126}. The completion fires on DIALOGUE-OPEN (talk_p_proc greeting selection), NOT via a player option or a brain route — the brain routes NOTHING and never writes 191. Faking-proof: the brain cannot reach the thank-you node unless the engine already set 191==2 by the player physically reaching the dog alive. FAIL variant: acdog.int destroy_p_proc @0xba0 -> 191=4 (Smoke killed); reporting the death to Nagor -> ACNagor Node006b @0x33da -> 191=6.",
+    "owner_note": "completion.owner = dialogue (Nagor's Node009 executes the completed write) but it is ENGINE-GATED by the acdog 191=2 precondition AND engine-auto (talk_p_proc greeting, no route) — this is the load-bearing property.",
+    "sets": "gvar 191=5 (done) | 191=4 (Smoke killed, fail) | 191=6 (death reported, fail-acknowledged)",
+    "code_ref": "ACNagor.int Node009 @0x3750 (W191=5); talk_p_proc gate EQUAL(191,2) @0x2290/@0x2a5a + call target 'Node009'; acdog.int critter_p_proc @0x9f4 (W191=2, precondition); acdog.int destroy_p_proc @0xba0 (W191=4); ACNagor Node006b @0x33da (W191=6). opcodes: 0x80C6 opSetGlobalVar, 0x80C5 opGetGlobalVar, 0x8033 EQUAL, 0x8036 GREATER_THAN_EQUAL.",
+    "second_writer": "acdog.int critter_p_proc (W191=2) is the engine PRECONDITION writer, NOT a second completed-value writer — value 5 has exactly ONE writer (ACNagor Node009), verified by exhaustive push(191)+push(val)+0x80C6 byte sweep of all 1443 scripts."
+  },
+  "reward": {
+    "xp": null,
+    "xp_source": "NOT byte-established — Node009 slice not confirmed to contain give_exp_points(0x80A1). Vanilla walkthroughs list XP for returning Smoke; the magnitude must be pulled from the node bytecode or a walkthrough before it is ever spoken.",
+    "caps": 0,
+    "items": [],
+    "paid_by": "acnagor",
+    "notes": "Reward at the {125}->{126} thank-you is UNCONFIRMED (XP/karma not byte-pinned). NON-load-bearing for the loop: the anti-invention rail forbids promising any number. Never promise a figure until grounded."
+  },
+  "fail": {
+    "smoke_killed": "acdog.int destroy_p_proc @0xba0 -> 191=4 (the goods — Smoke — are dead). FAIL; the turn-in greeting is never surfaced.",
+    "death_reported": "reporting the death to Nagor -> ACNagor Node006b @0x33da -> 191=6, {128} 'I miss Smoke...' (fail-acknowledged).",
+    "never_found_alive": "if 191 never reaches 2 (player never reaches Smoke alive), Nagor's Node009 greeting stays unreachable — the quest cannot complete."
+  },
+  "anti_invention": [
+    "The brain must NEVER write gvar 191 — acdog.int sets 191=2/4, ACNagor Node003a/b/Node009/Node006b set 1/5/6; the completion is engine-auto (talk_p_proc greeting), the brain routes NOTHING.",
+    "191=2 is NOT 'done' — it is the engine-set 'found alive' PRECONDITION that gates Nagor's turn-in greeting; completed is 191=5.",
+    "Do NOT assert the hunting-grounds sub-map index — acdog's cur_map_index[21] (Modoc: Farrel's Garden) is a disasm map-heuristic MISREAD.",
+    "Do NOT invent XP/caps/karma for the turn-in — the reward is not byte-pinned.",
+    "The repeated W(37..45,0/1) blocks in ACNagor's/talk_p_proc's disasm are standard dialogue boilerplate, NOT quest state — ignore them.",
+    "191=3 and 191=6 node semantics are INFERRED from the .MSG, not byte-pinned — best-effort, not ground truth."
+  ],
+  "links": {
+    "related_same_area": ["arroyo_sharpen_spear (gvar 183) — same Arroyo game-start area; independent quest (a candidate for the next onboarding)"]
+  },
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt row '1500, 120, 191, 1, 5' (Recover Smoke for Nagor)",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM:200 'GVAR_ARROYO_DOG := 0; // (191)' — enum name MATCHES the row identity for 191 (rare case).",
+    "completion": "ACNagor.int disasm (fo2_int_disasm.py): Node003a/Node003b W(191,1) accept; Node009 W(191,5) completion (byte-exact @0x3750); talk_p_proc R(191)x6 + call target Node009 + EQUAL(191,2) gate @0x2290/@0x2a5a; Node006b W(191,6); Node002a/Node007a W(191,3). acdog.int: critter_p_proc W(191,2) @0x9f4 (found alive), destroy_p_proc W(191,4) @0xba0 (killed).",
+    "corpus_sweep": "Exhaustive push(191)+push(val)+0x80C6 byte sweep of all 1443 unpacked/master/scripts/*.int: value 5 has exactly ONE writer (ACNagor @0x3750); 8 total 191-write sites across only 2 scripts (ACNagor 6, acdog 2).",
+    "offer_text": "unpacked/master/text/english/dialog/ACNAGOR.MSG {100},{108},{112},{113},{114},{117},{119},{125},{126},{128}",
+    "journal_title": "unpacked/master/text/english/game/quests.msg {120} 'Rescue Nagor's dog, Smoke, from the wilds.'",
+    "map_misread_proof": "unpacked/master/data/maps.txt [Map 004]=Arroyo Village, [Map 021]=Modoc: Farrel's Garden (proves the acdog cur_map_index[21] disasm label is a misread).",
+    "adversarial_refute": "All four load-bearing claims (giver=ACNagor; accept Node003a/b W191=1; completion Node009 W191=5 as SOLE writer of value 5; thresholds 1/5) survived byte-level refutation. Residual risk confined to NON-load-bearing details (acdog 191=2 firing condition + hunting-grounds map index; 191=3/6 node labels; turn-in reward).",
+    "reference_shape": "quests/q102_klamath_rustle.json (dialogue-outcome reference record)"
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "byte-verified + refuted on the four load-bearing claims (giver / accept W191=1 / completion Node009 W191=5 sole writer / thresholds 1,5).",
+    "live_test": "PASSED 2026-07-03 (litmus run): accepted via free-dialogue -> traveled, found Smoke (engine set 191=2) -> returned to Nagor, the engine-auto talk_p_proc greeting completed it (191=5), and Nagor acknowledged the turn-in cleanly (after the completed-quest ack fix). Rows-only onboarding proven end-to-end, with no new engine or brain code."
+  },
+  "status": "DONE",
+  "_status_note": "DONE for the rows-only LITMUS: the load-bearing completion IDENTITY (mechanism=dialogue-outcome, owner=dialogue, the SOLE value-5 writer Node009, the engine-auto talk_p_proc greeting gate on 191==2, thresholds 1/5, the accept writers, the faking-proof precondition chain) is BYTE-VERIFIED + adversarially refuted. DONE (not DRAFT) so the record drives the free-dialogue prompt/routing for the live verification (a DRAFT record is skipped: get()->None). Residuals are NON-load-bearing for the offer->accept->progress->complete loop: (1) the acdog 191=2 firing condition + hunting-grounds sub-map INDEX are inferred (no go_now atom needs them); (2) the turn-in reward is not byte-pinned (anti-invention forbids inventing a number); (3) 191=3/6 fail-state node labels are inferred. The live verification is the runtime gate; flip verified.live_test on pass."
+}

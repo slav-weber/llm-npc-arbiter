@@ -1,0 +1,43 @@
+{
+  "_comment": "The Quest-DB record schema, DECLARATIVE. The reader interprets exactly this subset: `required` = dotted paths that must exist and be non-empty; `types` = basic type pins; `enums` = closed vocabularies. One file per quest (q<gvar>_<slug>.json), UTF-8 on disk, ASCII keys; prompt-visible text fields (brief, stages[].next_step/say) are BYTE-MIGRATED from the atom registry — the grounded docs feed the NON-rendered fields. DRAFT records never reach prompts/routing (QDB_DRAFT_SKIP); the manifest generator may use their citation-audited mechanical half.",
+  "schema_version": 1,
+  "required": [
+    "schema_version", "quest_id", "gvar", "name", "display_threshold", "completed_threshold",
+    "area", "npcs.giver", "brief", "stages", "completion.mechanism",
+    "completion.owner", "completion.condition", "sources", "verified", "status"
+  ],
+  "required_done": [
+    "maps", "reward", "fail", "completion.code_ref"
+  ],
+  "_required_note": "`required` binds EVERY record (the identity/mechanical core a DRAFT must already carry); `required_done` additionally binds status:DONE (the world-half completeness a record needs before prompts may consume it). A DRAFT with empty maps/reward is legal — it can never reach prompts anyway (QDB_DRAFT_SKIP).",
+  "types": {
+    "gvar": "int", "display_threshold": "int", "completed_threshold": "int", "maps": "list",
+    "stages": "list", "guard_gvars": "list", "spoil_gvar": "int", "routing.node_roles": "list",
+    "scene.map": "int", "scene.win_vars": "list"
+  },
+  "enums": {
+    "status": ["DONE", "DRAFT"],
+    "completion.owner": ["engine", "dialogue"],
+    "completion.mechanism": ["combat", "kill-target", "item-turnin", "reach-place", "dialogue-outcome", "map-exit"],
+    "routing.node_roles[].role": ["accept", "go_now", "pay", "turn_in", "dismiss", "dead_end", "make_leave", "escort_join", "special_buy"],
+    "stages[].phase": ["offer", "in_progress", "done", "done_violent", "failed"]
+  },
+  "_node_roles_shape": "routing.node_roles = [{script, proc, role}] — SCRIPT-QUALIFIED (Q102's make-leave nodes live in KCTORR while its pitch is the Duntons'; node999 is a dead-end in TWO scripts). The reader builds role_index[script][proc] -> (role, gvar) across ALL loaded records.",
+  "_win_vars_shape": "scene.win_vars = [{tag, mvar}] — the map-GLOBAL vars (mapGetGlobalVar) the engine emits for this scene; feeds the kSceneVars manifest generator.",
+
+  "_deliverable_note": "PRESENCE-BLINDNESS FIX (2026-07-19). OPTIONAL block: a record WITHOUT it behaves byte-for-byte as before. It declares the physical ENTITY a quest hands over (Nagor's dog, a brahmin herd, a delivered item) so the presence frame can resolve a FOUR-valued presence verdict (here|not_yet|gone|unknown) from the engine perceive roster and remove that entity from the LLM's authorship surface. It is INERT DESCRIPTIVE DATA: it declares NOTHING the exe must emit, so it deliberately feeds NEITHER manifest_rows() NOR manifest_var_rows() and CANNOT perturb expected_fingerprint(). It is validated SEPARATELY by the reader: a malformed block is stripped and logged, the RECORD still loads — a data typo must never cost a turn its quest.",
+  "deliverable_block": {
+    "required": ["kind", "name_ru", "aliases", "present_when", "owner"],
+    "required_by_kind": { "critter": ["pid"], "herd": ["pid"], "item": ["pid"] },
+    "types": { "pid": "int", "count": "int", "aliases": "list", "strict_aliases": "list", "name_ru": "str",
+               "present_when": "str", "expected_at.map": "int", "expected_at.npc": "str",
+               "expected_at.npc_pid": "int" },
+    "enums": { "kind": ["critter", "item", "herd"], "owner": ["engine"] },
+    "defaults": { "count": 1 },
+    "_pid_note": "THE JOIN KEY. The engine already puts the pid on the wire inside the perceive key freeWorldMemoryKey(c) = '<map>_<pid>_<id>' (or 'comp_<pid>_<id>' for a party member). NEVER join on the display name: names are localized, duplicated, and Smoke answers to BOTH «Смок» and «Дым».",
+    "_aliases_note": "SANITIZER match-set, NOT prompt text. Must cover the real Russian inflections the memory gate will meet (Смок/Смока/Смоку/Смоком, пёс/пса/псу). The gate matches subject AND polarity — it drops only clauses asserting CURRENT presence/absence, never true history.",
+    "_present_when_note": "gvar predicate over THIS record's gvar, e.g. '>=5'. Ops: >= <= > < == != (bare '=' reads as '=='). Below it -> verdict not_yet (honest absence). Author it from the record's own completed_threshold — never guess.",
+    "_strict_aliases_note": "OPTIONAL. The unambiguous PROPER-NAME forms only. `aliases` may (and for Smoke must) contain ordinary common nouns («пёс», «собака», and «Дым» = the Russian word for smoke); that full set is used ONLY inside the deliverable's OWNING NPC (expected_at.npc). Everywhere else the sanitizer — a memory-DELETION match set — is restricted to strict_aliases, and with none declared it matches nothing at all outside the owner. Adversarial review 2026-07-19: the unrestricted list deleted «Хакунин ждёт Клыка» and «здесь пахнет дымом от костра» from unrelated NPCs, permanently.",
+    "_failed_when_note": "OPTIONAL. One predicate or a list of them (same grammar as present_when) marking TERMINAL FAIL values of this gvar. A satisfied failed_when resolves the verdict to `unknown` — render nothing, assert nothing. Without it every non-complete value collapses into one negative and a KILLED deliverable is described as «дело не доведено до конца», i.e. a false engine claim that never expires."
+  }
+}

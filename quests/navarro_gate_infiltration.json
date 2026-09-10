@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "quest_id": "navarro_gate_infiltration",
+  "gvar": 511,
+  "no_journal": true,
+  "_no_journal_note": "ENGINE-GATE record, NOT a Pip-Boy journal quest. The Navarro infiltration chain (Chris enlists you -> the sentry lets you through -> Dornan takes you on) lives in MAP vars (mvar 0 / mvar 14 on Map 109) + the base-alert gvar 511 — none is a quests.txt row. This record exists ONLY to feed the manifests: guard_gvars 511 (the alert blocks both gatekeepers), guard_mapvars 0/14 + effect_mapvars 14 (the navarro_chris_enlist / navarro_gate_password atoms). status=DRAFT: get()->None, never drives a journal prompt; the atoms' offer_brief grounds the replies. The drift check skips no_journal records.",
+  "name": "Наварро — проникновение через ворота (пароль «Овечья голова»; не журнальный гейт)",
+  "display_threshold": 0,
+  "completed_threshold": 1,
+  "area": "Navarro",
+  "maps": [109],
+  "_maps_note": "Map 109 = navarro 'Navarro Entrance' (maps.txt) — Chris (the fuel pumps), the sentry (the gate) and Dornan (the parade ground) are all on the one map; mvar 0/14 live in its map-globals. There is no teleport anywhere in the chain — the player walks in on foot through the woods.",
+  "npcs": {
+    "giver": "ccchris",
+    "_giver_note": "ccchris = Chris the refueller (the Enclave's unofficial gatekeeper: he hands out the password and sets mvar0=1 through Node997). ccgguard = the sentry at the gate (mvar14=2 through the vanilla write in Node007; on our side, the atom's map_var form). ccdrill = Sergeant Dornan (the consumer of mvar0: the recruit branch instead of 'civilian -> alert')."
+  },
+  "brief": "Проникновение на базу Наварро под видом новобранца: убедить Криса-заправщика, что ты из пополнения (проверка Красноречия; он вносит в списки — mvar0=1 — и выдаёт пароль «SHEEPSHEAD»/«ОВЕЧЬЯ ГОЛОВА»), затем ОДНОМУ подойти к часовому и назвать пароль (mvar14=2, «доложитесь начальнику строевой подготовки»). Записи в Пип-Бое нет — это гейт-цепочка, не журнальный квест. Тревога на базе (gvar 511>0) закрывает оба звена.",
+  "stages": [
+    { "val": 0, "phase": "offer",
+      "_src": "gvar 511 == 0: the base alert is NOT raised — both gatekeepers behave normally (Chris screens the player, the sentry checks the password)." },
+    { "val": 1, "phase": "done",
+      "_src": "gvar 511 >= 1 (GVAR_NAVARRO_BASE_ALERT, written by CCGGUARD Node998 @0x2f74 and kin): the base is on alert — talk_p_proc in both scripts branches into the alert nodes, and neither the enlistment nor the password is offered. 'done' here = the gate chain closed by the alert (the record's terminal state, not a reward)." }
+  ],
+  "guard_gvars": [511],
+  "_guard_gvars_note": "gvar 511 = GVAR_NAVARRO_BASE_ALERT (VAULT13.GAM:520): CCCHRIS talk_p_proc at 511>0 -> Node026 (alert float + hostile), CCGGUARD -> Node012+Node998. Both atoms guard on gvar(511)==0 — under an alert there is neither enlistment nor password.",
+  "guard_mapvars": [0, 14],
+  "effect_mapvars": [14],
+  "_mapvars_note": "mvar 0 (Map 109) = 'Chris enlisted you' — SOLE writer CCCHRIS Node997 (our atom calls it with exec_proc; mvar0 is NOT replicated). mvar 14 = 'the sentry let you through' — vanilla writer Node007 (=2); our atom writes it in map_var form, setmapvar=14:2 (Node007 is gsay-unsafe). The atom guards read both (guard_mapvars); the effect whitelist permits writing only 14 (effect_mapvars). NB: the mvar whitelists are flat (no map scope) — cross-map index collisions are neutralized by the atoms' scope.script binding (ccchris/ccgguard live only on Map 109).",
+  "completion": {
+    "mechanism": "dialogue-outcome",
+    "owner": "dialogue",
+    "condition": "Two links, both engine-side: (1) navarro_chris_enlist (intent gate_pass, check=Speech diff 4 = the vanilla mod -10) calls exec_proc ccchris:Node997 on a successful roll — that node sets mvar0=1 itself and pays a one-shot 1500 XP; (2) navarro_gate_password (intent gate_pass, check=none — vanilla does not roll for the password) writes setmapvar=14:2 under the guard mvar0==1 AND mvar14==0 AND gvar511==0 AND party_size(0)==0 (whitelist kAtomEffectMapVars). The party gate 'recruits report ALONE' ({125}/{132}) rides on the ENGINE scalar atom_party_size (emitAtomPartySize, the exact Node006/008 formula: PARTY_COUNT − car(gvar18) − dude − K-9 pid 16777687); with no data the brain assumes 'not alone' (fail-closed). Dornan then reads mvar0 himself (the vanilla talk_p_proc dispatcher) — our mechanics do not reach in there.",
+    "sets": "mvar0=1 (Chris, through Node997) | mvar14=2 (the sentry, setmapvar) | 511 — READ ONLY (the alert is written by vanilla)",
+    "code_ref": "ccchris disasm: Node019 @0x3082 the party branch; Node019a @0x316c / Node019b @0x3208 / Node022a @0x3462 roll_vs_skill(Speech,-10) + one-shot lvar9; Node997 @0x3832 (master @0x3732) set_map_var(0,1) + lvar10 one-shot + give_exp(1500), ZERO gdialog opcodes. ccgguard disasm: Node001 @0x26f8 (options {106}/{109}/{133} only while mvar0==1); Node006 @0x2a12 / Node008 @0x2bcc the party formula metarule(16,0)-gvar(18)-1-(party_member_obj(16777687)!=0)>=1 -> {125}/{132}; Node007 @0x2ae0 set_map_var(14,2) @0x2ae2 (the sole writer of mvar14=2 in the 1443-script .int corpus) + gsay {128}; Node998 @0x2f74 lvar5=2 + gvar511=1."
+  },
+  "reward": {
+    "xp": 1500,
+    "xp_source": "CCCHRIS Node997 one-shot (lvar10==0): give_exp_points(1500) + display {800} 'You conned Chris to give you the password.' — the NODE pays it, not our layer.",
+    "caps": 0,
+    "items": [],
+    "notes": "Nothing beyond the vanilla 1500 XP for conning Chris. anti-invention: no rewards or items for getting through the gate."
+  },
+  "anti_invention": [
+    "The brain NEVER writes mvar0 — the sole writer is CCCHRIS Node997 (the atom calls it with exec_proc); mvar14 is written ONLY as setmapvar=14:2 from the sentry atom (whitelist), and gvar511 is read-only.",
+    "Chris's Speech check is a REAL engine roll; on a failure the model voices the fail_line — never a «ладно, проходи».",
+    "Vanilla does NOT roll for the password at the sentry — but «уговорить без пароля» does not exist either: without mvar0==1 the atom is dead and the refusal is honest.",
+    "The party gate is engine arithmetic (atom_party_size), NOT perceived names: with a retinue the sentry atom does not fire and the NPC refuses in canon ({125}/{132}).",
+    "A gatekeeper has no right to let the player past or accept the password in words until the real node/effect has run (the gatekeeper-grounding class; ECBridge is the same class)."
+  ],
+  "sources": {
+    "engine_binding": "NOT a quests.txt row (no_journal: an mvar chain + the alert gvar). Binding = ccchris.int/ccgguard.int bytecode.",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM:520 GVAR_NAVARRO_BASE_ALERT (511); :27 GVAR_PLAYER_GOT_CAR (18, a term in the party formula).",
+    "completion": "Disassembly session 2026-07-17 (ccgguard / ccchris_mod; corpus byte-sweep of 1443 .int: mvar0=1 sole writer CCCHRIS Node997, mvar14=2 sole writer CCGGUARD Node007).",
+    "offer_text": "unpacked/master/text/english/dialog/CCCHRIS.MSG {190}-{208},{800}; CCGGUARD.MSG {103}-{134}; ccdrill.msg {108}.",
+    "reference_shape": "quests/q10_arroyo_temple_gate.json (no_journal engine-gate record)."
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "Node997 byte-scanned = a pure effect node (world ops only); Node007 is gsay-unsafe -> the map_var form; the Node006/008 party formula is reproduced verbatim in emitAtomPartySize (car gvar18 + K-9 pid 16777687); the mvar0/mvar14/gvar511 writers were cross-checked by the corpus sweep.",
+    "live_test": "PENDING — to verify on Map 109: (1) «я новобранец» to Chris -> Speech roll -> on success mvar0=1 + 1500 XP; (2) with a party in tow the password does NOT get past the sentry (the atom is dead, a {125}-class refusal); (3) alone, «овечья голова» -> mvar14=2 + passage; (4) after mvar0==1 Dornan runs the recruit branch, not the civilian one; (5) at gvar511>0 both links are dead."
+  },
+  "status": "DRAFT",
+  "_status_note": "DRAFT: what this record contributes is the mechanical half (the guard/effect manifests + the byte-level truth about the writers). get()->None — it drives no journal prompt; the offers are grounded by the atoms' offer_brief. Flip verified.live_test after a live run on a freshly built exe."
+}

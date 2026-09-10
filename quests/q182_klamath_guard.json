@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "quest_id": "klamath_guard_brahmin",
+  "gvar": 182,
+  "name": "Уберечь браминов",
+  "name_note": "quests.txt row 1502,302,182,1,2 (desc msg 302). Anchor on the NUMBER 182 (enum names desync).",
+  "display_threshold": 1,
+  "completed_threshold": 2,
+  "area": "Klamath",
+  "maps": [14],
+  "npcs": { "giver": "kctorr", "others": ["kcdunton", "kcbrahmn"] },
+  "brief": "Помоги простаку Торру уберечь его семейное стадо браминов на ВЫГОНЕ (к востоку от центра города) от «людей-жуков» — на деле это РАДСКОРПИОНЫ, что завелись в поле и нападают на скот. ЗАДАЧА ИГРОКА — выйти в поле и ПЕРЕБИТЬ скорпионов: сперва нападёт один, потом в поле найдутся ещё; брамины должны уцелеть. Игрок ОХОТИТСЯ на тварей сам (вместе с Торром), идёт К ним — он НЕ крадёт и НЕ гонит скот; никакого числа голов и оплаты за голову нет. Дело засчитается САМО, когда скорпионы перебиты, а стадо цело. БЕЗ всякого «ждать ночи / до заката / караулить» — твари уже в поле, идти бить их надо СРАЗУ. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+  "_brief_provenance": "BYTE-MIGRATED from atom_registry torr_guard_brahmin_accept/goto scope.offer_brief (prompt-visible text migrates verbatim; flag-ON/OFF parity).",
+  "stages": [
+    { "val": 0, "phase": "offer" },
+    { "val": 1, "phase": "in_progress",
+      "next_step": "Дело ИДЁТ (не закрыто). Операционная задача, которую Торр должен внятно назвать: иди в ПОЛЕ и перебей радскорпионов («людей-жуков»), особенно к ЮГО-ВОСТОКУ выгона, чтобы они не добрались до браминов; брамины должны УЦЕЛЕТЬ. Бить их надо ПРЯМО СЕЙЧАС, в поле — это ГЛАВНОЕ, ДОМИНИРУЮЩЕЕ указание. Торрово поверье «они приходят ночью / летают» — лишь его простодушный колорит, а НЕ команда: НЕ предлагай «ждать ночи/заката/караулить» как способ. Когда твари перебиты и стадо цело — Торр говорит вернуться/уйти с выгона: дело закроется САМО, как только игрок сойдёт с пастбища (это делает движок). Завершение игрок объявлять не должен — пока движок не засчитал, дело НЕ сделано." },
+    { "val": 2, "phase": "done" }
+  ],
+  "routing": {
+    "node_roles": [
+      { "script": "kctorr", "proc": "node999", "role": "dead_end",
+        "_src": "The dialogue guards' _QUEST_DEADEND_TARGETS table: the guard-help dead-end option («Надеюсь, когда нас будет двое…») shares its жуки/мумук wording with the drive-off msg-234 — never a route target." }
+    ],
+    "accept": { "owner": "dialogue", "sets": "gvar 182=1", "via_atoms": ["torr_guard_brahmin_accept", "torr_guard_brahmin_goto"],
+      "code_ref": "KCTORR.int Node007 (accept, W(182,1)) / Node915->Node020 (go-now teleport); accept option msg-id 162-vs-170 pinning = open question" },
+    "go_to_scene": { "proc": "kctorr:Node020", "does": "gfade + time-advance + load_map(14)" }
+  },
+  "scene": {
+    "map": 14,
+    "win_vars": [
+      { "tag": "scorps_killed", "mvar": 5 },
+      { "tag": "total_scorps", "mvar": 19 },
+      { "tag": "torr_on_map", "mvar": 4 }
+    ],
+    "win_condition": "scorps_killed >= total_scorps (exact comparator UNVERIFIED in disasm) AND torr_on_map==1 at map-exit",
+    "content": "Radscorpions — a group in the SE corner of the pasture (pre-placed: they do NOT come on their own, the player must go and kill them); Torr stays out in the field; in the shed to the west are the Duntons and radscorpion claws (the evidence). The brahmin and Torr must survive."
+  },
+  "guard_gvars": [70, 203, 71],
+  "completion": {
+    "mechanism": "map-exit",
+    "owner": "engine",
+    "condition": "On leaving map 14, KLAGRAZ.int map_exit_p_proc sets 182=2 + 250 XP IFF: gvar182==1 AND map_var(4)==1 (MVAR_Torr_On_Map) AND the radscorpion kill vars satisfied (MVAR_Scorps_Killed(5) vs MVAR_Total_Scorps(19)) AND gvar202==0 (brahmin alive) AND gvar70!=1 (Torr alive) AND gvar203!=1 (Torr not enemy). CORRECTED gate: the earlier draft's conjuncts gvar200!=306/gvar202!=306 were a DISASM MISREAD of KLAGRAZ.MSG message-id pushes (adversarial refutation).",
+    "sets": "gvar 182=2",
+    "code_ref": "KLAGRAZ.int map_exit_p_proc @0x10e4-0x11a8 (write 182=2 @0x11a8, XP @0x11b0)",
+    "second_writer": "KCDUNTON Node994 (dialogue, scare-the-Duntons, Speech~75) ALSO writes 182=2 (+76=1); reachability unproven."
+  },
+  "reward": { "xp": 250, "xp_source": "bytecode @0x11b0", "karma": "+50 (walkthrough only, NOT in the disasm slice)", "caps": 0, "paid_by": null, "notes": "Flat; NO per-brahmin pay. Completion is silent on map-exit — no turn-in conversation exists." },
+  "fail": {
+    "brahmin_killed": "kcbrahmn destroy_p_proc -> 202=1 (breaks gate 202==0)",
+    "torr_killed": "-> 70=1 (breaks 70!=1)",
+    "torr_enemy": "-> 203=1 (breaks 203!=1)",
+    "declined": "decline Torr's initial request -> never offered again (walkthrough)"
+  },
+  "anti_invention": [
+    "NO «wait for night» — the night-raid story is Torr's flavor; no gameplay night trigger.",
+    "NO automatic radscorpion attack — pre-placed SE; the player HUNTS them.",
+    "NO per-brahmin reward — flat 250 XP.",
+    "Completion is written by the MAP script on map-exit — the brain never sets 182."
+  ],
+  "links": { "related_same_scene": ["klamath_rustle_brahmin (gvar 102) — same pasture, moral opposite; vanilla does NOT gate one accept on the other"] },
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt row '1502, 302, 182, 1, 2'",
+    "brief_next_step": "atom_registry.json torr_guard_brahmin_accept/goto (byte-migrated; their offer_brief_source cites KCTORR.MSG {150/151,160/161,170/172,174,230})",
+    "completion": "KLAGRAZ.int disasm + .GAM symbol cross-check + adversarial refutation",
+    "scene": "Scene content: walkthrough + kSceneVars/statestream tags",
+    "roles": "The dialogue guards' _QUEST_DEADEND_TARGETS table (a code table migrating into data)"
+  },
+  "verified": { "code": true, "walkthrough": true, "adversarial_refute": "REFUTED the original gate -> corrected", "live_test": "Q182 end-to-end PROVEN live (combat/map-exit class); the lifecycle gate re-proves the accept/go chain on every run" },
+  "status": "DONE"
+}

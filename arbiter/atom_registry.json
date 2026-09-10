@@ -1,0 +1,736 @@
+{
+  "_comment": "INERT WRITE-atom whitelist. Same side-car discipline as milestone_gates.json: _-prefixed keys are ignored; an atom does NOTHING unless active:true AND every name in its `invariants` resolves to a registered predicate. The loader is fail-closed: an atom missing `invariants`, `intent_verification`, or a non-empty `intent_verification.design_source` is REJECTED and escalated, never silently loaded. Every non-underscore field below (offer_brief, next_step, design_source, …) is game-facing Russian data or a verbatim citation of the game's own text, and stays as it is.",
+  "_effect_forms": "An effect is REUSABLE DATA over two GENERAL engine primitives (never per-atom code, hard rule #3): `data_delta`=[gvar mutations] applied by the gvar-set primitive; `proc`={script,proc} invoked by the GENERAL exec_proc primitive (it resolves the script's program + proc index by name -> _executeProcedure, exactly how a dialogue option runs its target). `post`=[predicates] re-asserted after apply. The next teleport-quest is a new atom ROW (its own proc:{script,proc}), NOT new code.",
+  "_intent_field": "`intent` is the machine intent-kind the firing layer routes on: one vanilla menu CHOICE = one atom = one intent, because the menu always was a classifier. A quest with both an ACCEPT step and a separate GO-NOW step is TWO atoms (accept ⊕ go_now), so a bare acceptance can never trigger the go-now teleport. The kind is detected by the deterministic classifier in the dialogue-guard layer; the LLM intent function-call later replaces that classifier. atom_gate is intent-agnostic (mechanism only) — it just carries the field through.",
+  "_pass_time_field": "Replaces an earlier, refuted `scene_advance` idea: there is NO scripted night-watch option — the pasture bugmen are PRE-PLACED night-active critters that attack when the REAL game clock is in the night band with the brahmin present. So passing time is a GENERAL engine fx `advance_time=<night|dusk|morning|dawn|day|+Nh>` (deferred like exec_proc), driven by the GENERAL pass-time intent in the dialogue-guard layer («дождёмся ночи / встанем на стражу / подождём до утра» = let's wait for night / stand watch / wait until morning -> advance_time=<target>). The engine advances the clock; the world's own time-gated machinery (night critters, lighting, schedules) reacts. NOT keyed to Torr or gvar 182 — any dialogue can pass time. Completion stays the engine's own map-exit; the brain never writes the done-gvar.",
+  "_next_step_field": "`scope.next_step` (OPTIONAL string; the gate ignores it) — the IN-PROGRESS actionable steer for an accepted quest: the point-to / win-condition the NPC must voice DOMINANTLY (what to do, WHERE, how it finishes), grounded in the real mechanic and free of invented flavour. The offer layer surfaces it, and the reply builder's in-progress branch issues it as the operative directive, over any canon colour. The brain still never declares completion — the engine flips the done-gvar.",
+  "_scene_map_field": "`scope.scene_map` (OPTIONAL int, NOT in _schema_required; the gate ignores it) — the engine map id the atom's go_now proc teleports the player TO (its exec_proc does load_map(N)). The firing/offer layer compares it to the live `cur_map` for scene-awareness: when the player is ALREADY at that scene, the reply layer suppresses the canon offer's «come to <place> at <time>» invite, because you are already here. Set on the go_now teleport atoms only.",
+  "_terminal_field": "`terminal` (OPTIONAL, default false; NOT in _schema_required) is the STRUCTURAL turn-ending signal the firing layer reads INSTEAD of sniffing the fx string: true on the go_now TELEPORT atoms (their deferred setgvar+exec_proc commit ONLY on a clean dialogue end, so the turn must end), omitted or false on flag-only accept atoms (the dialogue stays open). atom_gate just carries it through; the dialogue-guard layer surfaces it as the turn-terminal flag (which drives end=1) and marks the atom as fired (explore yields on it) — so a FUTURE non-setgvar/exec_proc effect atom (a pure party_add or relationship change, a non-relocating proc) is still correctly recognized as fired/terminal instead of being missed by fx vocabulary.",
+  "_completed_outcomes_field": "`scope.completed_outcomes` (OPTIONAL {OUTCOME-name: honest reflection note}; NOT in _schema_required; the gate ignores it) + `scope.spoil_gvar` (OPTIONAL int — the gvar whose ==1 means the quest's GOODS are destroyed). The dialogue turn DERIVES a real OUTCOME from the live gvar SET rather than from the binary ≥threshold: for the rustle — success (102==2 clean drive-off, brahmin alive) -> no key -> default framing; done_violent (102==3 Torr KILLED, brahmin alive) -> the bloody-manner note; spoiled (spoil_gvar 202==1 brahmin DESTROYED) -> OVERRIDES everything, because the goods are dead and the rustle FAILED even though the journal reads done -> the failure note. The reply builder's completed branch composes against the outcome (spoiled -> «ПРОВАЛЕНО» / FAILED, no reward; done_violent -> done but bloody; success -> default). Data-driven: the text and the spoiler live here, never hardcoded in the reply builder; and the brain still NEVER writes a gvar — the engine sets 102/202/70/68.",
+  "_schema_required": [
+    "scope.script",
+    "scope.offer_brief",
+    "scope.offer_brief_source(non-empty)",
+    "intent(accept|go_now)",
+    "guard.durable",
+    "effect(data_delta and/or proc)",
+    "invariants(non-empty)",
+    "intent_verification.code_truth",
+    "intent_verification.design_truth",
+    "intent_verification.design_source(non-empty)"
+  ],
+  "torr_guard_brahmin_accept": {
+    "active": true,
+    "intent": "accept",
+    "_activated": "2026-06-26/27: the invariant predicates are wired. SPLIT from the go-now teleport, after live play on 2026-06-27 showed that a bare 'я помогу' ('I'll help') must NOT teleport — Torr answers 'приходи вечером' ('come by in the evening'). This atom is the ACCEPT half only: register the quest flag, no teleport.",
+    "scope": {
+      "script": "kctorr",
+      "intent_descriptor": "согласие охранять браминов Торра (принять квест, БЕЗ немедленного выхода на выгон)",
+      "offer_brief": "Помоги простаку Торру уберечь его семейное стадо браминов на ВЫГОНЕ (к востоку от центра города) от «людей-жуков» — на деле это РАДСКОРПИОНЫ, что завелись в поле и нападают на скот. ЗАДАЧА ИГРОКА — выйти в поле и ПЕРЕБИТЬ скорпионов: сперва нападёт один, потом в поле найдутся ещё; брамины должны уцелеть. Игрок ОХОТИТСЯ на тварей сам (вместе с Торром), идёт К ним — он НЕ крадёт и НЕ гонит скот; никакого числа голов и оплаты за голову нет. Дело засчитается САМО, когда скорпионы перебиты, а стадо цело. БЕЗ всякого «ждать ночи / до заката / караулить» — твари уже в поле, идти бить их надо СРАЗУ. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+      "next_step": "Дело ИДЁТ (не закрыто). Операционная задача, которую Торр должен внятно назвать: иди в ПОЛЕ и перебей радскорпионов («людей-жуков»), особенно к ЮГО-ВОСТОКУ выгона, чтобы они не добрались до браминов; брамины должны УЦЕЛЕТЬ. Бить их надо ПРЯМО СЕЙЧАС, в поле — это ГЛАВНОЕ, ДОМИНИРУЮЩЕЕ указание. Торрово поверье «они приходят ночью / летают» — лишь его простодушный колорит, а НЕ команда: НЕ предлагай «ждать ночи/заката/караулить» как способ. Когда твари перебиты и стадо цело — Торр говорит вернуться/уйти с выгона: дело закроется САМО, как только игрок сойдёт с пастбища (это делает движок). Завершение игрок объявлять не должен — пока движок не засчитал, дело НЕ сделано.",
+      "offer_brief_source": [
+        "KCTORR.MSG {150/151} 'Me guard moo-moos from bugmen ... guard our family's brahmin herd from ferocious nocturnal attacks by bipedal, carapaced creatures that I call bugmen'",
+        "KCTORR.MSG {160/161} 'Bugmen take moo-moos at night. Torr scared! Hep Torr? ... Will you kill any bugmen that you see near the brahmin?'",
+        "KCTORR.MSG {170/172} 'Moo-moos field (points east of here) dark yes? ... I'll meet you in the pasture to the east of downtown at sunset'; {174} 'help you guard the Brahmin tonight ... pasture east of town, right around sunset'",
+        "KCTORR.MSG {230} 'no let bugmen eat moo-moos! ... keep any brahmin from being lost'"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(182)==0 AND gvar(70)==0 AND gvar(203)==0 AND gvar(71)==0",
+      "source": "Ф0 §13.3 (Q==0 AND not-dead AND not-enemy AND not-missing; no R-excl per owner B)"
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 182 = 1"
+      ],
+      "post": [
+        "gvar(182)==1"
+      ]
+    },
+    "invariants": [
+      "monotonic_Q",
+      "no_skip_to_2",
+      "reward_iff_started",
+      "not_if_dead",
+      "not_if_enemy",
+      "not_if_missing",
+      "idempotent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla accept = set gvar 182=1 (KCTORR Node007/915). Accepting does NOT teleport: Node007 then OFFERS options incl. 'идём на выгон сейчас' (-> SEPARATE proc Node020) and 'приду позже' (leave). The accept SET itself is a bare gvar write, no map-load (Ф0 §13.1/§14 disasm).",
+      "design_truth": "согласие охранять браминов РЕГИСТРИРУЕТ квест в Пип-Бое; Торр говорит игроку прийти на выгон вечером — приём квеста это НЕ телепорт, выход на выгон это отдельный осознанный выбор",
+      "design_source": [
+        "FREE-DIALOGUE-ATOMS-PLAN §14.1: vanilla Node007 (accept, set 182=1) предлагает 'идём сейчас' (->Node020) ИЛИ 'позже' — два разных шага",
+        "owner live-play 2026-06-27: на 'хорошо, я помогу тебе' Торр отвечает 'приходи вечером ... когда солнце красное', значит приём НЕ должен телепортить"
+      ],
+      "reconciled": "agree: accept-нода ставит только флаг -> атом приёма несёт ТОЛЬКО data_delta (no proc). Телепорт вынесен в отдельный go_now-атом ниже (faithful to vanilla two-step)."
+    },
+    "origin": "vanilla"
+  },
+  "torr_guard_brahmin_goto": {
+    "active": true,
+    "intent": "go_now",
+    "terminal": true,
+    "_activated": "2026-06-27: the GO-NOW half — the player explicitly chooses to go to the pasture NOW. Composite gvar+proc: accept-if-needed (setgvar 182=1) THEN the vanilla teleport proc Node020. Fires whether the quest was already accepted (Q==1, the player returns and says 'пошли' / 'let's go') or not yet (Q==0, one-shot 'пошли' accepts and goes).",
+    "scope": {
+      "script": "kctorr",
+      "scene_map": 14,
+      "intent_descriptor": "идти на выгон к браминам ПРЯМО СЕЙЧАС (пошли/идём/веди) — телепорт на пастбище",
+      "offer_brief": "Помоги простаку Торру уберечь его семейное стадо браминов на ВЫГОНЕ (к востоку от центра города) от «людей-жуков» — на деле это РАДСКОРПИОНЫ, что завелись в поле и нападают на скот. ЗАДАЧА ИГРОКА — выйти в поле и ПЕРЕБИТЬ скорпионов: сперва нападёт один, потом в поле найдутся ещё; брамины должны уцелеть. Игрок ОХОТИТСЯ на тварей сам (вместе с Торром), идёт К ним — он НЕ крадёт и НЕ гонит скот; никакого числа голов и оплаты за голову нет. Дело засчитается САМО, когда скорпионы перебиты, а стадо цело. БЕЗ всякого «ждать ночи / до заката / караулить» — твари уже в поле, идти бить их надо СРАЗУ. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+      "next_step": "Дело ИДЁТ (не закрыто). Операционная задача, которую Торр должен внятно назвать: иди в ПОЛЕ и перебей радскорпионов («людей-жуков»), особенно к ЮГО-ВОСТОКУ выгона, чтобы они не добрались до браминов; брамины должны УЦЕЛЕТЬ. Бить их надо ПРЯМО СЕЙЧАС, в поле — это ГЛАВНОЕ, ДОМИНИРУЮЩЕЕ указание. Торрово поверье «они приходят ночью / летают» — лишь его простодушный колорит, а НЕ команда: НЕ предлагай «ждать ночи/заката/караулить» как способ. Когда твари перебиты и стадо цело — Торр говорит вернуться/уйти с выгона: дело закроется САМО, как только игрок сойдёт с пастбища (это делает движок). Завершение игрок объявлять не должен — пока движок не засчитал, дело НЕ сделано.",
+      "offer_brief_source": [
+        "KCTORR.MSG {150/151} 'Me guard moo-moos from bugmen ... guard our family's brahmin herd from ferocious nocturnal attacks by bipedal, carapaced creatures that I call bugmen'",
+        "KCTORR.MSG {160/161} 'Bugmen take moo-moos at night. Torr scared! Hep Torr? ... Will you kill any bugmen that you see near the brahmin?'",
+        "KCTORR.MSG {170/172} 'Moo-moos field (points east of here) dark yes? ... I'll meet you in the pasture to the east of downtown at sunset'; {174} 'help you guard the Brahmin tonight ... pasture east of town, right around sunset'",
+        "KCTORR.MSG {230} 'no let bugmen eat moo-moos! ... keep any brahmin from being lost'"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(182)<=1 AND gvar(70)==0 AND gvar(203)==0 AND gvar(71)==0",
+      "source": "Ф0 §13.3 + §14.1: Q not done (<=1: 0 принять-и-пойти, 1 принято-вернулся), AND not-dead/enemy/missing"
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 182 = 1"
+      ],
+      "proc": {
+        "script": "kctorr",
+        "proc": "Node020",
+        "does": "gfade_out + game_time_advance(+~15m) + load_map(14=MAP_KLAMATH_GRAZE, 13)"
+      },
+      "post": [
+        "gvar(182)==1",
+        "cur_map==14"
+      ]
+    },
+    "invariants": [
+      "monotonic_Q",
+      "no_skip_to_2",
+      "reward_iff_started",
+      "not_if_dead",
+      "not_if_enemy",
+      "not_if_missing"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla 'go to the pasture now' = KCTORR Node020 (gfade + game_time_advance + load_map 14), reached from the accept node's 'идём сейчас' option (msg 402/404 -> GSAY target=49). Sets/keeps gvar 182=1 first (ordered before exec_proc), so a Q==0 'пошли' accepts AND goes in one. Pure gvar-set does NOT teleport; угон не чекается (Ф0 §13.1/§14, owner B).",
+      "design_truth": "осознанный выбор 'идём на выгон сейчас' телепортирует игрока на пастбище (время скипает, люди-жуки ночные); одношаговое 'пошли' и принимает квест, и сразу выходит — это задумано как ускорение, не отдельный квест",
+      "design_source": [
+        "owner live-play 2026-06-26: на выгон попадают ТЕЛЕПОРТОМ из диалога, пешего маршрута нет",
+        "FREE-DIALOGUE-ATOMS-PLAN §14.1: 'идём сейчас' -> Node020 = gfade+time-advance+load_map(14); §14.4 п.3 живая матрица"
+      ],
+      "reconciled": "agree: код имеет отдельный go-now прок И замысел его предполагает -> вариант B. Механизм = gvar+proc-телепорт (звать прок, НЕ реплицировать load_map: иначе пропустим скип времени). НЕТ инварианта idempotent — go_now законно стреляет и при Q==1 (вернулся и сказал 'пошли'); монотонность setgvar делает повторный set 182=1 no-op'ом."
+    },
+    "origin": "vanilla"
+  },
+  "klamath_ratgod_accept": {
+    "active": true,
+    "intent": "accept",
+    "_activated": "Generator instance #1 (2026-06-27): the first NON-Torr atom — Klamath, Slim Picket's rat problem -> registers the 'Kill the rat god' quest (gvar 390). Pure data-delta, NO teleport. Proves the atom framework generalizes beyond Torr (generic invariants, its own quest gvar 390, its own non-quest guard flag 68 via atom_gvars). Brain-side: the firing layer was de-Torr-coupled (no hardcoded 182). Engine-side: 68 was added to the atom guard-gvar list.",
+    "scope": {
+      "script": "kcslim",
+      "intent_descriptor": "согласие помочь Слиму Пикету с крысами / убить крысиного бога (принять квест, БЕЗ телепорта — игрок сам идёт в крысиные пещеры)",
+      "offer_brief": "Помоги Слиму Пикету с крысами в северной части Лагеря Трапперов: он даёт ключ от запертой двери у себя за спиной, а за ней — кишащие крысами ходы. ЗАДАЧА ИГРОКА — перебить крыс и, главное, убить гигантского «крысиного бога» (Кинг Ра'ат), что верховодит всей стаей. Игрок идёт туда САМ (без телепорта); это запись в журнал, награды за число убитых крыс нет. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+      "offer_brief_source": [
+        "KCSLIM.MSG {160} 'Here's a key to that door behind me. There's all kinds of rats back there - even one big one s'posedly. You go through there and kill all the dang rats you can eat'",
+        "KCSLIM.MSG {340} 'I've even heard talk that there's some kind of giant rat god that tells 'em all what to do'",
+        "KCSLIM.MSG {203} 'I'm going to help you with your rat problem' (accept line); {161} 'That big ol' rat that was bothering everyone hereabouts seems to have disappeared' (completion)"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(390)==0 AND gvar(68)==0",
+      "source": "KCSLIM Node06a R(390) then W(390,1) / Node24a W(390,1) — clean literal data-delta, NO map op; 68=GVAR_ENEMY_KLAMATH (game_vars.h idx 68) read by talk_p_proc, set by damage_p_proc — vanilla won't offer/accept from a hostile town"
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 390 = 1"
+      ],
+      "post": [
+        "gvar(390)==1"
+      ]
+    },
+    "invariants": [
+      "monotonic",
+      "idempotent_from_zero",
+      "guard_consistent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla accept = set gvar 390=1 (KCSLIM Node06a: R(390) then W(390,1); Node24a: W(390,1)) — clean literal write, NO map/transition op on the accept node (pure data-delta, recon §15). Completion 390=2 is earned by killing the rat god (Keeng Ra'at) in the rat caves — separate, not this atom. talk_p_proc gates on 390 (offer) and 68 (GVAR_ENEMY_KLAMATH hostility). Accepting is a Pip-Boy journal flag only — NO teleport (the player walks to the caves himself).",
+      "design_truth": "соглашаясь помочь Слиму Пикету с его крысами (убить крысиного бога Кинг Ра'ат, что заправляет крысами в пещерах), игрок РЕГИСТРИРУЕТ квест 'Kill the rat god' в Пип-Бое; это чистая запись в журнал, без перемещения — игрок сам идёт в крысиные пещеры",
+      "design_source": [
+        "KCSLIM.MSG {203} 'I'm going to help you with your rat problem' (accept line), {160} 'giant rat god that tells 'em all what to do', {161} completion ('big ol' rat ... seems to have disappeared')",
+        "quests.msg {304} 'Kill the rat god'; data/quests.txt gvar 390 (accept threshold=1, done=2)",
+        "fo2_int_disasm KCSLIM.int --gvar 390: Node06a R(390),W(390,1) / Node24a W(390,1); MAP/TRANSITION NONE on accept -> pure data-delta",
+        "FREE-DIALOGUE-ATOMS-PLAN §15 recon: gvar 390 bucketed pure_data_delta (no proc step)"
+      ],
+      "reconciled": "agree: the accept node sets ONLY the journal flag -> the atom carries ONLY data_delta (no proc, no teleport — faithful to a player-walks quest). Guard mirrors the vanilla offer-gating (390==0 not-yet-started AND 68==0 town-not-hostile). Invariants are GENERIC (monotonic / idempotent_from_zero / guard_consistent) — not Torr-coupled, reusable by every future generator atom."
+    },
+    "origin": "vanilla"
+  },
+  "klamath_rustle_goto": {
+    "active": true,
+    "intent": "go_now",
+    "terminal": true,
+    "_activated": "Generator instance #2 (2026-06-27): the first PROC-form NON-Torr atom — Klamath, the Dunton brothers' brahmin rustle, the SYMMETRIC counterpart to torr_guard_brahmin_goto (same pasture, map 14). go_now-ONLY: the vanilla accept ALSO sets internal flag 179 (GVAR_RUSTLE_ACCEPT), which is NOT a quest gvar, so setgvar refuses it (faking-proof), and the accept-only nodes (Node973/989) carry gsay, which makes them unsafe to exec_proc. ONLY the TERMINAL go-now node Node975 normalizes cleanly (it sets 102+179 ITSELF then teleports, gsay-safe like Torr's Node020). This is the generator's known LIMITATION: the internal-non-quest-flag accept class. Composite: setgvar=102:1 is the faking-proof Pip-Boy quest flag (102 IS a quest gvar) ordered before the proc; the proc sets 179 and teleports.",
+    "scope": {
+      "script": "kcdunton",
+      "scene_map": 14,
+      "intent_descriptor": "идти угонять браминов Дантонов ПРЯМО СЕЙЧАС (пошли/идём/веди) — телепорт на пастбище",
+      "offer_brief": "Помоги братьям Дантонам увести скот у простака Торра. Встреча на пастбище к востоку от города (вечером, ~18:00), где Торр пасёт своих браминов. ЗАДАЧА ИГРОКА — нейтрализовать Торра: отговорить, оглушить или спровадить (Дантоны просят сильно не калечить). Самих браминов уводят САМИ Дантоны, пока ты отвлекаешь Торра. Игрок НЕ гонит браминов лично и НЕ крадёт конкретное число голов; награда общая, без оплаты за голову; конкретной суммы на приёме канон НЕ называет (плата — по завершении, у лавки) — обещай честную плату по характеру, без числа.",
+      "offer_brief_source": [
+        "KCDUNTON.MSG {198} 'talk him out of the brahmin, or knock him out - just don't hurt him too bad'",
+        "KCDUNTON.MSG {200/201} 'Meet us at the brahmin grazing area, east of town, at 6:00 PM'",
+        "KCDUNTON.MSG {404} 'we need you to get him ... While you do that, we'll get the brahmin'",
+        "KCDUNTON.MSG {424} 'get rid of that idiot Torr'; {700} 'You have rustled the brahmin successfully'",
+        "REWARD: offer names NO sum — {405} '...Meet us back at our shop tomorrow to pick up your reward'. The only figure, {190} 'here's the $50 and a little something extra ... Dunton's Drymeat', is the COMPLETION payout (node after {181} 'let me get your cut'), NOT stated at the offer -> do not pull it into the pitch"
+      ],
+      "completed_outcomes": {
+        "done_violent": "оно закрыто УБИЙСТВОМ Торра: Торр МЁРТВ, и за его смерть Кламат настроен к игроку ВРАЖДЕБНО. Дантоны получили своё стадо живым и по-своему довольны добычей, но дело сделано КРОВЬЮ — не выдавай это за чистый или мирный успех и не ври, будто Торр просто ушёл.",
+        "spoiled": "стадо ПЕРЕБИТО — Дантонам досталась падаль, а не живой скот: это ПРОВАЛ, а не победа. НЕ называй это «выполнено»/«сделано», НЕ благодари и НЕ жди награды (за дохлых браминов её нет); признай честно, что угон сорван — добыча загублена.",
+        "_source": "The OUTCOME taxonomy, keyed by outcome rather than by raw gvar value: success (102==2 clean drive-off, brahmin alive) -> default framing (no key). done_violent (102==3 Torr KILLED, brahmin alive; KCTORR.int's destroy_p_proc sets 102=3, 70=1 and 68=1). spoiled (spoil_gvar 202==1 brahmin DESTROYED) -> overrides everything: the goods are dead, so the rustle FAILED even though the journal reads done. Derived at dialogue time from the live gvar set, which carries atom_gvars for 202."
+      },
+      "spoil_gvar": 202
+    },
+    "guard": {
+      "durable": "gvar(102)<=1 AND gvar(188)==0 AND gvar(204)==0",
+      "source": "§13.3/§14 + KCDUNTON disasm: 102 rustle not done (<=1: 0 accept-and-go, 1 accepted-returns), AND not-dead (188=GVAR_DUNTON_DEAD, destroy_p_proc) AND not-enemy (204=GVAR_ENEMY_DUNTON, damage_p_proc); does NOT check Torr's Q — double quest legal (owner variant B, §13.4)"
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 102 = 1"
+      ],
+      "proc": {
+        "script": "kcdunton",
+        "proc": "Node975",
+        "does": "set gvar 102=1 + set gvar 179=1 + gfade_out + load_map(14=MAP_KLAMATH_GRAZE, 13) — terminal accept-and-go node"
+      },
+      "post": [
+        "gvar(102)==1",
+        "cur_map==14"
+      ]
+    },
+    "invariants": [
+      "monotonic",
+      "guard_consistent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla 'go rustle the brahmin now' = KCDUNTON Node975: set gvar 102=1, set gvar 179=1, gfade_out, load_map(14) — TERMINAL teleport to the Klamath pasture (same map as Torr's guard). Mirrors Torr Node020 (gfade+load_map, NO gsay/dialog-UI op -> safe to exec_proc outside gsay). The accept-only nodes Node973/Node989 also set 102+179 but continue the dialogue (gsay) -> NOT exec_proc-safe; and 179 is not a quest gvar so setgvar can't replicate it -> only the go_now form normalizes. Rustle does NOT read Torr's Q(182) at accept (Ф0 §13.4 CALL-trace) — double quest intended.",
+      "design_truth": "осознанный выбор 'идём угонять браминов сейчас' телепортирует игрока на пастбище (map 14, то же, что у охраны Торра), где разыгрывается угон; моральная развилка охрана⊕угон разрешается ТАМ, в исполнении, не на приёме — двойной квест ЗАДУМАН (вариант B)",
+      "design_source": [
+        "fo2_int_disasm KCDUNTON.int --gvar 102: Node973/975/989 W(102,1)+W(179,1); Node975 also gfade_out+load_map(14); damage_p_proc W(204,1)=ENEMY_DUNTON; destroy_p_proc W(188,1)=DUNTON_DEAD",
+        "quests.msg {303} 'Rustle the brahmin'; data/quests.txt gvar 102 (accept=1, done=2); 179 NOT in quests.txt (internal RUSTLE_ACCEPT flag)",
+        "FREE-DIALOGUE-ATOMS-PLAN §13.1/§13.4/§14: угон симметричен Торру (Node975->load_map 14), угон НЕ чекает Q — вариант B",
+        "owner live-play 2026-06-27: двойной квест на РЕАЛЬНОЙ механике подтверждён (принял охрану -> телепорт -> принял угон -> оба активны)"
+      ],
+      "reconciled": "agree: the terminal go-now node carries the whole vanilla effect (102+179+teleport) AND the design intends a one-shot 'go rustle now'. Mechanism = composite gvar+proc (setgvar=102:1 for the faking-proof Pip-Boy flag, ordered BEFORE exec_proc=kcdunton:Node975 which sets the internal 179 + teleports). NO idempotent invariant — go_now legitimately re-fires at 102==1 (player accepted, returns, says 'пошли'); monotonic makes the repeat setgvar a no-op. NO accept-only atom (179 is non-quest -> setgvar refuses; §16 limitation)."
+    },
+    "origin": "vanilla"
+  },
+  "arroyo_nagor_dog_accept": {
+    "active": true,
+    "intent": "accept",
+    "_activated": "A litmus test for the rows-only path (2026-07-03): quest #4 (Nagor's dog, gvar 191) onboarded ROWS-ONLY — the Quest-DB record arroyo_nagor_dog.json plus this thin atom, with ZERO new C++ or brain code. Mirrors klamath_ratgod_accept EXACTLY (generic invariants plus a pure setgvar of the journal gvar; 191 IS a quest gvar -> faking-proof, no exec_proc, no gsay-safety concern). NO go_now atom — the player WALKS to the hunting grounds; acdog.int sets 191=2 on reaching Smoke alive; returning to Nagor auto-completes via talk_p_proc (Node009 -> 191=5).",
+    "scope": {
+      "script": "acnagor",
+      "intent_descriptor": "согласие найти и вернуть Нагору его пса Дыма (принять квест; телепорта/выхода нет — идти на охотничьи угодья пешком)",
+      "offer_brief": "Помоги Нагору, младшему двоюродному брату Избранного, вернуть его пса по кличке Дым. Пёс убежал на охотничьи угодья к северу от деревни — «за палаткой Хакунина» — и не вернулся, а тётушка Морлис не пускает самого Нагора искать его. ЗАДАЧА ИГРОКА — дойти до охотничьих угодий, отыскать Дыма ЖИВЫМ (там водятся гекконы) и вернуть его к Нагору. Награда каноном при приёме числом НЕ названа — обещай честную мальчишескую благодарность, без конкретной суммы. Квест в самом НАЧАЛЕ игры (Арройо), дойти легко.",
+      "next_step": "Дело ИДЁТ (не закрыто). Иди на охотничьи угодья к СЕВЕРУ от деревни, за палаткой Хакунина; найди Дыма ЖИВЫМ (там гекконы — берегись) и приведи/верни его к Нагору. Завершение объявлять игрок не должен — пока движок не засчитал возвращение, дело НЕ сделано.",
+      "offer_brief_source": [
+        "ACNAGOR.MSG {108} 'Smoke ran off into the hunting grounds and hasn't come back and now Morlis won't let me go find him ... you could do it and I wouldn't get in trouble.' (THE deed)",
+        "ACNAGOR.MSG {112} — where: 'far side of Hakunin's tent, north of the village.'",
+        "ACNAGOR.MSG {100} 'You don't see his dog, Smoke, anywhere.' (the visible deficit)",
+        "quests.msg {120} 'Rescue Nagor's dog, Smoke, from the wilds.' (journal title)"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(191)==0",
+      "source": "quests.txt '1500, 120, 191, 1, 5' (accept=1 display, done=5); ACNagor Node003a @0x2fe2 / Node003b @0x3022 W(191,1). Accept only while NOT-started (191==0); a found/killed/reported dog (191>=2) already excludes re-accept."
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 191 = 1"
+      ],
+      "post": [
+        "gvar(191)==1"
+      ]
+    },
+    "invariants": [
+      "monotonic",
+      "idempotent_from_zero",
+      "guard_consistent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla accept = set gvar 191=1 (ACNagor Node003a @0x2fe2 W191=1 + CALL Node004 / Node003b @0x3022 W191=1; byte-exact C001 push 191 / C001 push 1 / 80C6 opSetGlobalVar). Accepting does NOT teleport (no load_map in the giver) -> the atom is data_delta only, no proc. 191 IS a quest gvar (quests.txt) -> the setgvar is faking-proof (the engine's own Pip-Boy flag).",
+      "design_truth": "принятие дела про пса Нагора РЕГИСТРИРУЕТ квест в Пип-Бое (191>=1); дальше игрок сам пешком идёт на охотничьи угодья искать Дыма — приём это НЕ телепорт, выход на угодья это отдельный шаг игрока.",
+      "design_source": [
+        "unpacked/master/data/quests.txt '1500, 120, 191, 1, 5' (accept=1 display, done=5)",
+        "ACNagor.int disasm (fo2_int_disasm.py): Node003a @0x2fe2 W(191,1)+CALL Node004 / Node003b @0x3022 W(191,1); reached via accept options {109}/{110}",
+        "workflow q4-litmus-grounding (w2foaxhr9): accept writer byte-verified + adversarially refuted; SOLE completion writer Node009 (W191=5) proven corpus-wide over all 1443 scripts"
+      ],
+      "reconciled": "agree: accept-нода ставит только флаг 191=1 -> атом приёма несёт ТОЛЬКО data_delta (no proc), как klamath_ratgod_accept. Телепорта нет (в скрипте давателя нет load_map/go-now узла), поэтому НЕТ парного go_now атома — завершение engine-auto при возврате к Нагору (talk_p_proc -> Node009 при 191==2)."
+    },
+    "origin": "vanilla"
+  },
+  "klamath_rescue_torr_accept": {
+    "active": true,
+    "intent": "accept",
+    "scope": {
+      "script": "kcardin",
+      "intent_descriptor": "согласиться найти и вернуть пропавшего Торра для его матери Ардин Бакнер / пообещать отправиться в Каньон Клэмат за её сыном",
+      "offer_brief": "Ардин Бакнер из Лагеря Клэмат — мать простодушного пастуха Торра. После истории с брамином её сын пропал (движок: gvar 71=1) и ушёл в каньон к востоку от пастбища, откуда, по его словам, приходили 'жукоглазые', уводившие скот. ЗАДАЧА ИГРОКА — добраться до Каньона Клэмат, найти Торра и вернуть его живым домой (спасти, а не просто 'разведать'). Торр уходит в безопасность сам, когда игрок его освобождает; засчитывает завершение движок. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+      "offer_brief_source": [
+        "KCARDIN.MSG {270} 'My boy Torr's missing. I sure wish someone would help me find him. He's never been gone from home so long before.'",
+        "KCARDIN.MSG {320} 'Torr was sure that's where the bugmen ... taking our brahmin came from ... I just wish someone would bring my boy back to me.' + {330} '... where all the golden geckos came from ... a hidden cave or vault of some sort.'",
+        "KCARDIN.MSG {323} 'Sounds as though that canyon would be a good place to start looking. I'll go look for your boy, Mrs. Buckner.' (accept line); {310} 'Have you found my boy yet? ... Please find him for me.' (in-progress); {220}/{620} completion"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(391)==0 AND gvar(71)==1 AND gvar(68)==0",
+      "source": "KCARDIN talk_p_proc R(71) then R(391) (and R(68),R(69)) select the rescue offer -> offer only when Torr is MISSING (71==1) and quest not started (391==0) and town not hostile (68==0). Node950 W(391,1) is the accept node, clean literal data-delta, NO map op (only Node920 in KCARDIN carries gfade). 68=GVAR_ENEMY_KLAMATH set by damage_p_proc; 71=GVAR_TORR_MISSING set by KCTORR on the rustle drive-off, cleared by KCTORR leave_player with 391=2."
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 391 = 1"
+      ],
+      "post": [
+        "gvar(391)==1"
+      ]
+    },
+    "invariants": [
+      "monotonic",
+      "idempotent_from_zero",
+      "guard_consistent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla accept = set gvar 391=1 (KCARDIN Node950 @0x2f96: byte-exact C0 01 00 00 01 87 C0 01 00 00 00 01 80 C6) — clean literal write, NO map/transition op on the accept node (pure data-delta). Completion 391=2 is EARNED separately by returning Torr alive to safety (KCTORR leave_player via critter_p_proc heartbeat) — an ESCORT/reach-tile event, not this atom. talk_p_proc gates the offer on 71 (TORR_MISSING), 391 (not started), 68 (ENEMY_KLAMATH). Accepting is a Pip-Boy journal flag only — NO teleport (the player walks to Klamath Canyon Map 048).",
+      "design_truth": "игрок обещает матери Ардин Бакнер найти и вернуть её пропавшего сына Торра из Каньона Клэмат; это регистрирует квест 'Rescue Torr' в Пип-Бое; конкретной суммы награды канон при приёме не называет; телепорта нет — игрок идёт в каньон сам.",
+      "design_source": [
+        "KCARDIN.MSG {323} accept, {270} deed/missing, {320}/{330} where+why (canyon, golden geckos), {300} post-accept, {310} in-progress, {220}/{620} completion",
+        "quests.msg {305} 'Rescue Torr.'; data/quests.txt row 87 gvar 391 (accept threshold=1, done=2)",
+        "fo2_int_disasm KCARDIN.int --gvar 391: Node950 W(391,1); talk_p_proc R(71),R(68),R(69),R(391); MAP/TRANSITION NONE on accept -> pure data-delta",
+        "maps.txt:466-470 [Map 048] Klamath Canyon / klacanyn (rescue scene); byte sweep: SOLE 391=2 writer is KCTORR leave_player (escort completion)"
+      ],
+      "reconciled": "agree: the accept node sets ONLY the journal flag -> the atom carries ONLY data_delta (no proc, no teleport). Guard mirrors the vanilla offer-gating (391==0 not-started AND 71==1 Torr-missing AND 68==0 town-not-hostile). Invariants are GENERIC (monotonic / idempotent_from_zero / guard_consistent), not Torr-hardcoded. NOTE: completion is an unsupported ESCORT class -> atom kept active:false pending the escort handler + live test."
+    },
+    "origin": "vanilla",
+    "_activated": "2026-07-03 — the escort-join router was built; Torr's rescue now runs offer -> accept -> escort -> engine-complete, end to end. The guard gvar(71)==1 needs gvar 71 mirrored (manifest regenerated; engine rebuild pending)."
+  },
+  "klamath_rescue_smiley_accept": {
+    "active": true,
+    "intent": "accept",
+    "_activated": "2026-07-03 — the escort-join router was built. An ESCORT-class quest (Rescue Smiley the Trapper, gvar 197): the accept half is onboarded rows-style (a clean setgvar of the journal flag 197 — faking-proof, no exec_proc; it mirrors klamath_ratgod_accept). Completion is the ESCORT itself: KCSMILEY's leave_player heartbeat writes 197=2 once Smiley, led out as a companion, reaches the exit of the Toxic Caves (Map 012) — the same class as quest 391, Rescue Torr. Leading him out goes through the escort-join router (the join node KCSMILEY Node970, surfaced as real options). NO engine rebuild needed (guards 197 and 68 are already mirrored).",
+    "scope": {
+      "script": "kcardin",
+      "intent_descriptor": "согласие помочь Ардин Бакнер найти и вернуть её пропавшего возлюбленного — траппера Смайли (принять квест; телепорта нет — игрок сам идёт в Токсичные пещеры пешком)",
+      "offer_brief": "Помоги Ардин Бакнер из дома Бакнеров (Лагерь Клэмат) вернуть её пропавшего возлюбленного — траппера Смайли. Смайли ушёл в «последний поход» доказать, откуда берутся золотые гекконы (тайная пещера/родник/хранилище), и уже две недели как просрочил возвращение. ЗАДАЧА ИГРОКА — дойти до Токсичных пещер (к северо-востоку от Кламата), найти Смайли ЖИВЫМ и ВЫВЕСТИ его наружу: он ранен гекконами и сам через ящеров не пройдёт, его надо провести как временного спутника (не просто «разведать» и не просто «перебить гекконов»). Игрок идёт туда САМ, без телепорта; это запись в журнал. Если Смайли погибнет — провал. Конкретной суммы канон при приёме НЕ называет; благодарность Ардин — освобождение Сулика. Обещай честную благодарность, без числа.",
+      "offer_brief_source": [
+        "KCARDIN.MSG {150} 'you didn't see a trapper named Smiley outside of town did you? ... Never should have let him go off on that fool quest of his.'",
+        "KCARDIN.MSG {180} 'Smiley and me were getting downright serious ... he said he needed to go off on one last quest' + {330} 'he thought he knew where all the golden geckos came from ... hidden cave or vault of some sort'",
+        "KCARDIN.MSG {340} 'He's two weeks later getting back than he said he'd be and I'm worried'; {341} 'I'd like to help. I could look for him for you.' (accept option) -> {350} 'let me mark on your map where he talked about looking'",
+        "KCARDIN.MSG {110}/{630} completion thank-you ('With him back I guess we won't need Sulik anymore'); KCSMILEY intro {110} 'I'm hurt too bad to get past those damn lizards on my own'",
+        "quests.msg {301} 'Rescue Smiley the Trapper.'; data/quests.txt '1502, 301, 197, 1, 2'"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(197)==0 AND gvar(68)==0",
+      "source": "quests.txt '1502, 301, 197, 1, 2' (accept=1 display, done=2); KCARDIN Node960 @0x2fe4 / Node970 @0x3032 both W(197,1); talk_p_proc gate R(197),R(68). Accept only while NOT-started (197==0) AND town not hostile (68=GVAR_ENEMY_KLAMATH ==0). NB: NO separate SMILEY_MISSING gvar (unlike Torr's 71) — 197 itself carries the missing/searching state; the guard is the clean two-term form, identical shape to klamath_ratgod_accept."
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 197 = 1"
+      ],
+      "post": [
+        "gvar(197)==1"
+      ]
+    },
+    "invariants": [
+      "monotonic",
+      "idempotent_from_zero",
+      "guard_consistent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla accept = set gvar 197=1 (KCARDIN Node960 @0x2fe4 + Node970 @0x3032, two accept paths; byte-exact C0 01 00 00 00 C5 / C0 01 00 00 00 01 / 80 C6 at both). Accepting does NOT teleport — the accept nodes carry NO map op (only KCARDIN Node920 has gfade); {350} merely MARKS the worldmap where Smiley went. 197 IS a quest gvar (quests.txt row) -> the setgvar is faking-proof (engine's own Pip-Boy flag). Completion 197=2 is EARNED separately by escorting Smiley alive out of the Toxic Caves (KCSMILEY leave_player @0x2b78 heartbeat, SOLE writer of value 2 corpus-wide) — NOT this atom. talk_p_proc gates on 197 (offer) and 68 (GVAR_ENEMY_KLAMATH hostility).",
+      "design_truth": "принимая просьбу Ардин найти её возлюбленного Смайли, игрок РЕГИСТРИРУЕТ квест 'Rescue Smiley the Trapper' в Пип-Бое (197=1); дальше он сам пешком идёт в Токсичные пещеры искать Смайли — приём это НЕ телепорт, а выход к пещерам и вывод Смайли наружу это отдельные шаги игрока.",
+      "design_source": [
+        "unpacked/master/data/quests.txt:79 '1502, 301, 197, 1, 2' (accept=1 display, done=2)",
+        "fo2_int_disasm KCARDIN.int --gvar 197: Node960 @0x2fe4 W(197,1) / Node970 @0x3032 W(197,1); talk_p_proc R(197),R(68); MAP/TRANSITION NONE on accept nodes (only Node920 gfade)",
+        "quests.msg {301} 'Rescue Smiley the Trapper.'; Ardin passport kin 'Смайли:возлюбленный/друг'",
+        "corpus byte-sweep (1443 *.int) of C0 01 00 00 00 C5 ...: 197=1 SOLE-written by KCARDIN (@0x2fe4,@0x3032); completion 197=2 SOLE-written by KCSMILEY leave_player @0x2b78; fail 197=4 @0x222e; kladwtwn 197=3 @0x1ef0"
+      ],
+      "reconciled": "agree: accept-нода ставит только флаг 197=1 -> атом приёма несёт ТОЛЬКО data_delta (no proc, no teleport — верно для квеста, где игрок идёт сам), как klamath_ratgod_accept. Guard зеркалит ванильный гейт (197==0 не-начато AND 68==0 город-не-враждебен); отдельного SMILEY_MISSING gvar нет. Инварианты ГЕНЕРИЧЕСКИЕ (monotonic/idempotent_from_zero/guard_consistent). ВАЖНО: завершение Смайли — ЭСКОРТ (heartbeat 197=2), этот атом онбордит ТОЛЬКО половину-приём; вывод Смайли наружу идёт через escort_join-роутер (join-нода KCSMILEY Node970 @0x31d6, surfaced как реальные опции) — тот же класс, что q391."
+    },
+    "origin": "vanilla"
+  },
+  "klamath_refuel_still_accept": {
+    "active": true,
+    "intent": "accept",
+    "_activated": "2026-07-04 — COUPLED-ACCEPT via the stamptime fx primitive (CORRECTED encoding). Vanilla KCBOB Node013 sets 198=1 AND stamps GVAR_STILL_START(458)=game_time()/HOURS; both spoil gates test game_time()/HOURS - 458 > 24 -> 198=2 (spoiled) else 198=3. So this atom emits setgvar=198:1 + stamptime=458:hours — the ENGINE stamps the accept-HOUR (faking-proof). (Earlier stampdeadline=458:1 wrote an absolute future tick, which the elapsed>24 gate read as always-in-window -> the spoil-late branch was dead; fixed.) Completion (198=3) stays engine-owned (kstill use_obj_on in-window). Threshold (24h) lives in the vanilla gate, not the atom.",
+    "scope": {
+      "script": "kcbob",
+      "intent_descriptor": "согласиться заправить самогонный аппарат Виски-Боба (взять дело; телепорта нет — игрок сам идёт к лачуге на пастбище)",
+      "offer_brief": "Виски-Боб (Whiskey Bob) в Кламате держит самогонный аппарат в лачуге к югу от города (на пастбище). Гекконы покусали ему ногу, и он не может сам сходить его заправить, пока не прогоркло сусло. ЗАДАЧА ИГРОКА — прийти в лачугу и СВОИМИ РУКАМИ загрузить в аппарат дрова (использовать предмет «дрова/wood» НА объекте-аппарате), причём успеть примерно в течение суток — иначе партия хмельного испортится. Это не «принести Бобу вещь»: заправляешь сам аппарат на месте. Игрок идёт туда САМ, без телепорта; это запись в журнал. Соблазн предать: Саджаг (Sajag) платит за то, чтобы сдать ему, где аппарат, — тогда Боб узнает и назовёт тебя обманщиком. За честную заправку Боб называет ~$50 при возврате (не гарантированная движком выплата — награда по диалогу).",
+      "offer_brief_source": [
+        "KCBOB.MSG {190} still/$50 offer; {220} 'dump firewood into the still, within a day or the hootch goes bad'; {221} accept option 'OK, I'll do it' -> {230}; {280}/{281} $50/$65 turn-in pay; {270} double-crosser",
+        "KCSAJAG.MSG {230}/{231} Sajag pays to learn where the still is (betrayal fork)",
+        "kstill.MSG {110} success+XP / {130} 'gone bad' (late) / {140} still full",
+        "quests.txt '1502, 300, 198, 1, 3'; quests.msg {300} 'Refuel the still.'"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(198)==0 AND gvar(68)==0",
+      "source": "quests.txt '1502, 300, 198, 1, 3' (accept=1 display, done=3). KCBOB Node013 @0x3472 W(198,1) + @0x3470 W(458, game_time()/hours); talk_p_proc gate R(68),R(198). Accept only while NOT-started (198==0) AND town not hostile (68=GVAR_ENEMY_KLAMATH ==0). 458 (GVAR_STILL_START) is a kAtomGuardGvars/spoiler gvar — set via the stamptime fx (engine-computed), NOT a data_delta quest mutation."
+    },
+    "check": {
+      "type": "none"
+    },
+    "effect": {
+      "data_delta": [
+        "set gvar 198 = 1"
+      ],
+      "stamp_time": {
+        "gvar": 458,
+        "unit": "hours"
+      },
+      "post": [
+        "gvar(198)==1"
+      ]
+    },
+    "invariants": [
+      "monotonic",
+      "idempotent_from_zero",
+      "guard_consistent"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla accept = KCBOB Node013 set_global_var(198,1) + set_global_var(458, game_time()/GAME_TIME_TICKS_PER_HOUR = accept-HOURS). This atom replicates BOTH: setgvar=198:1 (F-O4-safe quest flag) + stamptime=458:hours (the engine stamps game_time in HOURS — the unit the spoil gate reads). NO teleport. Completion 198=3 is EARNED separately by USING firewood on the still while game_time/HOURS - 458 <= 24 (kstill use_obj_on_p_proc @0xa6c, engine-owned); late -> 198=2 (spoiled); betrayal -> 198=4/5. talk_p_proc gates on 198 (offer) and 68 (hostility).",
+      "design_truth": "принимая просьбу Виски-Боба заправить его самогонный аппарат, игрок РЕГИСТРИРУЕТ квест 'Refuel the still' в Пип-Бое (198=1) и запускает срок (~сутки, гвар 458 = игровое_время+сутки, считает движок); дальше он сам идёт к лачуге на пастбище и грузит дрова в аппарат — приём это НЕ телепорт и НЕ завершение.",
+      "design_source": [
+        "unpacked/master/data/quests.txt:77 '1502, 300, 198, 1, 3'",
+        "fo2_int_disasm KCBOB.int --gvar 198,458: Node013 @0x3472 W(198,1) + @0x3470 W(458, game_time via op 0x80ea); talk_p_proc R(68),R(198); MAP/TRANSITION NONE on accept",
+        "quests.msg {300} 'Refuel the still.'; KCBOB.MSG {190}/{220}/{221}/{230}",
+        "corpus byte-sweep gvar 198: KCBOB 1,3,5,5; KCSAJAG 4; kstill 2,3 — completion 198=3 written by kstill use_obj_on @0xa6c (in-window) + KCBOB talk @0x21be (time-gated return)"
+      ],
+      "reconciled": "agree: the vanilla accept is a COUPLED write (flag 198=1 + START-stamp 458=game_time()/hours). A pure-setgvar atom would leave 458=0 -> the spoil gate (now/hours - 0 > 24) spoils after 24 game-hours from GAME START -> wrong. So this atom emits setgvar=198:1 + stamptime=458:hours (engine stamps the accept-HOUR; 458 is a declared kAtomGuardGvars gvar the fx is scoped to). Invariants stay GENERIC on QUEST gvar 198 (parse_mutations sees only 198; the time-stamp is an engine-arbitrated side-effect). Completion is engine-owned use-object; brain never writes 198."
+    },
+    "origin": "vanilla"
+  },
+  "arroyo_cameron_pass": {
+    "active": true,
+    "intent": "gate_pass",
+    "terminal": true,
+    "_activated": "2026-07-16 — fixes the Cameron / Temple of Trials onboarding blocker: the player talked their way past without a fight, but the outcome had no mechanics behind it — the door stayed locked and Cameron did not step aside. Onboards the vanilla CLEAN effect node Node015a as a gate_pass atom with an ENGINE-side check=Speech (vanilla Node015: roll_vs_skill(Speech,0) OR is_skill_tagged(Speech) -> {169} 'you may pass'). The door is unlocked by the vanilla critter_p_proc heartbeat on LVAR13==2 (obj_unlock 0x812F + obj_open 0x8131, scenery pid 934) — the atom replicates none of that.",
+    "scope": {
+      "script": "actemvil",
+      "intent_descriptor": "уговорить Кэмерона пропустить БЕЗ боя (мирный финал испытания; движок бросит проверку Красноречия — при успехе он отпирает дверь и отходит сам)",
+      "offer_brief": "Кэмерон — последний страж Храма испытаний, соплеменник Избранного: чтобы выйти из храма, надо победить его в РУКОПАШНОЙ (без оружия, до признания поражения — НЕ насмерть). ЕДИНСТВЕННЫЙ мирный путь — УБЕДИТЬ его, что бой не нужен (канонический довод: «мы не знаем сил друг друга — случайно можем убить; зачем рисковать?»); убеждённый, он пропускает САМ: отпирает дверь за своей спиной и отходит. Награды/предметов за это нет, записи в Пип-Бое нет — это финал испытания, не журнальный квест.",
+      "offer_brief_source": [
+        "ACTEMVIL.MSG {104} 'I have the honor of being your final challenge. To continue in your quest you must defeat me in unarmed combat.'",
+        "ACTEMVIL.MSG {126} 'No, my friend, you need only defeat me. When the time comes, we will end the battle.' (бой до нокаута, не насмерть)",
+        "ACTEMVIL.MSG {168} 'Accidents do happen, so what if one of us inadvertently kills the other? Let's just end this now rather than take that chance, okay?' (довод игрока)",
+        "ACTEMVIL.MSG {169} 'Hmm... I see your point. ... Very well -- you may pass, Chosen One.' (успех) / {170} '...However, we must still do battle.' (провал)",
+        "ACTEMVIL.MSG {201} 'You have a tongue of purest silver, Chosen One.' (пост-проход: канон помнит проход словами)"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(10)==0 AND gvar(369)==0",
+      "source": "actemvil.int disasm: gvar 10 (GVAR_START_ARROYO_TRIAL) — combat_p_proc W(10,1) на старте боя, Node015a W(10,2) мирный проход, destroy_p_proc W(10,1); gvar 369 — destroy_p_proc W(369,1) (Кэмерон убит; рядом W(7,1)=GVAR_ENEMY_ARROYO); map_enter_p_proc R(369),R(10). 10==0 => испытание ещё не решено (ни боем, ни словом); 369==0 => Кэмерон жив. 10 НЕ в quests.txt — setgvar его не примет, пишет только сама нода (proc-form, класс Dunton-179)."
+    },
+    "check": {
+      "type": "Speech",
+      "vs": "",
+      "difficulty": 3,
+      "fail_line": "Хм... Нет. Слова хороши, но испытание есть испытание — мы должны сразиться. Не бойся, я постараюсь не покалечить тебя.",
+      "source": "ваниль Node015 @0x378a: roll_vs_skill(dude,14=Speech,0) OR metarule(40,14)=is_skill_tagged(Speech). difficulty=3 => модификатор 0 (freeaction.cc (3-diff)*10) = ванильный roll с mod 0; vs пуст (ваниль неконтестная). Движок роллит в freedlg_turn.cc и применяет fx ТОЛЬКО при успехе; fail_line — честный отказ по мотивам {170}, голосится при провале."
+    },
+    "effect": {
+      "proc": {
+        "script": "actemvil",
+        "proc": "Node015a"
+      },
+      "post": [
+        "gvar(10)==2"
+      ]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla мирный проход = ACTemVil Node015a @0x3848: ЧИСТАЯ эффект-нода (set_local_var(12,1); set_local_var(13,2); set_map_var(20,2); set_global_var(10,2); ноль gsay/giq/gdialog-опкодов, байт-скан 0x3848..0x389a), достижимая ТОЛЬКО из Node015 @0x378a при success(roll_vs_skill(Speech,0)) OR is_skill_tagged(Speech). Дверь в ноде НЕ открывается: critter_p_proc по LVAR13==2 делает obj_unlock+obj_open (scenery pid 934=0x20003A6) и уводит Кэмерона. combat_p_proc W(10,1); destroy_p_proc W(369,1)+W(7,1)+W(10,1). gvar 10 не в quests.txt -> эффект строго proc-form (setgvar откажет).",
+      "design_truth": "испытание Кэмерона ЗАДУМАНО с мирным выходом: красноречивый Избранный убеждает его не драться ({168}->{169} 'you may pass'), и Кэмерон сам отпирает дверь и отходит; проход словами канонизирован ({201} 'tongue of purest silver') и гейтится РЕАЛЬНОЙ проверкой Speech — не согласием модели",
+      "design_source": [
+        "тред баг-репорта 1523333586332418172: уговорил — дверь заперта, Кэмерон не отходит (блокер онбординга)",
+        "fo2_int_disasm actemvil.int: Node015 roll_vs_skill(14) @0x37a0 + metarule(40,14) @0x37bc; Node015a @0x3848 W(10,2) без UI-опкодов; critter_p_proc LVAR13==2 -> 0x812F/0x8131 pid 33555366=0x20003A6 (scenery 934); destroy_p_proc W(369,1)",
+        "ACTEMVIL.MSG {104}/{126}/{168}/{169}/{170}/{171}/{201}; VAULT13.GAM поз. 10=GVAR_START_ARROYO_TRIAL (поз. имя 369 'GVAR_DUMAR_STATUS' фактическому употреблению НЕ соответствует — верим числу, код-истина: смерть Кэмерона)"
+      ],
+      "reconciled": "agree: в коде есть отдельная чистая пас-нода И замысел предполагает мирный проход через проверку Speech -> механизм = proc-form атом (звать Node015a, НЕ реплицировать записи) + движковый check=Speech (difficulty 3 = ванильный mod 0). Расхождение с ванилью: тег Speech там = авто-успех, у нас — обычный ролл (тегнутый Speech и так даёт высокий %); принято. terminal:true — deferred exec_proc коммитится на чистом конце диалога, дальше дверь открывает ванильный heartbeat."
+    },
+    "origin": "vanilla"
+  },
+  "arroyo_cameron_teach": {
+    "active": true,
+    "intent": "train",
+    "once_per_npc": true,
+    "_activated": "2026-07-17: the village-teacher training track. A sibling of arroyo_cameron_pass: the same actemvil node family, but the TEACHING branch (Node016a) rather than the pass branch (Node015a). It uses the train_skill fx, where the engine raises the skill on gDude — before that fx existed, free dialogue simply swallowed any teaching, because nothing could raise a skill. One-shot via once_per_npc (memory): the vanilla 'taught' fork is emergent from the dialogue tree, so there is no reusable gvar or local_var to guard on.",
+    "scope": {
+      "script": "actemvil",
+      "intent_descriptor": "научить игрока боевым навыкам — Кэмерон перед испытанием видит слабого бойца и подтягивает ему рукопашку и ближний бой (Безоружный +10, Холодное оружие +10; движок сам ополовинит тегнутый навык и упрётся в 300)",
+      "offer_brief": "Кэмерон — последний страж Храма испытаний — перед боем замечает, что игрок слаб в боевых искусствах, и предлагает подучить его: рукопашке и ближнему бою. Если игрок просит научить — Кэмерон реально поднимает навыки Безоружный и Холодное оружие (ванильные +10/+10). Разовое: в Храме бываешь раз, и учит он до испытания.",
+      "offer_brief_source": [
+        "ACTEMVIL.MSG {302} 'вижу, ты не так силён в боевых искусствах... я мог бы кое-чему тебя научить' (предложение обучить)",
+        "ACTEMVIL.MSG {303} 'да, буду рад' / {305} 'да, покажи, если можешь' (согласие ученика)",
+        "fo2_int_disasm actemvil.int: Node016a @0x3a96 mod_skill(3=Unarmed,10) + @0x3aa6 mod_skill(4=MeleeWeap,10) — gdialog-free эффект-нода, ровно +10 Безоружный и +10 Холодное"
+      ]
+    },
+    "guard": {
+      "durable": "gvar(10)==0 AND gvar(369)==0",
+      "_note": "gvar 10 = GVAR_START_ARROYO_TRIAL (0 = unresolved): teaching is available WHILE the trial is unresolved — Cameron teaches BEFORE the final fight. After the fight or a peaceful pass (10=1/2) teaching is unavailable, which gives a natural between-visits boundary. gvar 369 = Cameron is dead. Once-per-visit is enforced by once_per_npc (the brain-memory fired_atoms set), because vanilla has no 'taught' flag: it is emergent from the dialogue tree (Node016a sets no LVAR, and Node016 does not read one before the teach option)."
+    },
+    "effect": {
+      "skills": ["Unarmed:10", "Melee_Weapons:10"]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero",
+      "skills_only"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla actemvil Node016a: @0x3a96 critter_mod_skill(dude, 3=Unarmed, 10), @0x3aa6 critter_mod_skill(dude, 4=Melee, 10); только gfade, БЕЗ gsay/gdialog (byte-scan) — Кэмерон поднимает Безоружный+10 и Холодное+10, достижимо из teach-оффера Node016 ({302}->{303}/{305}). train_skill fx зеркалит op_critter_mod_skill на gDude (abs, halved-if-tagged skillIsTagged, loop skillAddForce, cap 300).",
+      "design_truth": "Кэмерон-наставник ЗАДУМАН учить боевым навыкам слабого игрока перед последним испытанием — это ванильный прирост навыка, который свободный диалог проглатывал (не было fx поднять навык). Разовое обучение (Храм — одноразовая локация; once_per_npc не даёт гриндить у одного учителя).",
+      "design_source": [
+        "тред баг-репорта 1523695849329266830: NPC в Арройо учит навыку в диалоге, прироста нет; через свободное действие тоже (владелец: «хорошая находка»)",
+        "fo2_int_disasm actemvil.int Node016a @0x3a96/0x3aa6 mod_skill(3,10)&(4,10); SCRIPTS.LST:749 ACTemVil.int local_vars=16",
+        "ACTEMVIL.MSG {302}, {303}, {305}"
+      ]
+    },
+    "origin": "vanilla"
+  },
+  "arroyo_jordan_teach": {
+    "active": true,
+    "intent": "train",
+    "once_per_npc": true,
+    "_activated": "2026-07-17: a follow-on in the training track. Jordan is Arroyo's Melee Weapons trainer (SCRIPTS.LST:213, 'Jordan. Trains player in Melee'). Skills-only once_per_npc with NO durable guard (the framework relaxation): a village trainer has no natural teaching-gvar, while train_skill is benign and capped and is already gated by memory, intent and scope.",
+    "scope": {
+      "script": "acjordan",
+      "intent_descriptor": "научить игрока ближнему бою — Джордан, деревенский мастер Арройо, подтягивает навык Холодного оружия (+10; движок ополовинит тегнутый, потолок 300)",
+      "offer_brief": "Джордан в Арройо учит обращению с холодным оружием. Попросишь научить — навык Холодное оружие реально вырастет (+10, как в оригинале). Разовое.",
+      "offer_brief_source": [
+        "SCRIPTS.LST:213 'ACJordan.int ; Jordan. Trains player in Melee' — прямое назначение NPC: тренер по Холодному оружию",
+        "fo2_int_disasm ACJordan.int: Node003 @0x257e mod_skill(4=MeleeWeap, 10) — ровно +10 Холодное оружие"
+      ]
+    },
+    "effect": {
+      "skills": ["Melee_Weapons:10"]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero",
+      "skills_only"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla ACJordan.int Node003 @0x257e critter_mod_skill(dude, 4=Melee, 10) — Джордан поднимает Холодное оружие на 10. train_skill fx зеркалит op_critter_mod_skill на gDude (halved-if-tagged, cap 300). Скилл-only once_per_npc: durable-guard не нужен (память + intent + scope).",
+      "design_truth": "Джордан ЗАДУМАН как тренер Арройо по Холодному оружию (SCRIPTS.LST комментарий) — ванильный прирост навыка, который свободный диалог проглатывал. Разовость — once_per_npc.",
+      "design_source": [
+        "тред 1523695849329266830: NPC в Арройо учит навыку в диалоге, прироста нет (владелец: «хорошая находка»)",
+        "SCRIPTS.LST:213 назначение Jordan = train Melee; fo2_int_disasm ACJordan.int Node003 @0x257e mod_skill(4,10)"
+      ]
+    },
+    "origin": "vanilla"
+  },
+  "sf_dragon_teach": {
+    "active": true,
+    "intent": "train",
+    "once_per_npc": true,
+    "_activated": "2026-07-17: a follow-on in the training track. The Dragon is San Francisco's unarmed-combat master and teaches Unarmed. Skills-only once_per_npc with no durable guard (the framework relaxation; scope=fcdragon already binds it to San Francisco on its own).",
+    "scope": {
+      "script": "fcdragon",
+      "intent_descriptor": "научить игрока рукопашному бою — Дракон, мастер боевых искусств Сан-Франциско, поднимает навык Безоружный (+5; движок ополовинит тегнутый, потолок 300)",
+      "offer_brief": "Дракон в Сан-Франциско обучает рукопашному бою. Попросишь научить — Безоружный реально вырастет (+5, как в оригинале). Разовое.",
+      "offer_brief_source": [
+        "fo2_int_disasm fcdragon.int: proc learn2 @0x6672 mod_skill(3=Unarmed, 5) — ровно +5 Безоружный (gdialog-free эффект-нода)"
+      ]
+    },
+    "effect": {
+      "skills": ["Unarmed:5"]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero",
+      "skills_only"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla fcdragon.int learn2 @0x6672 critter_mod_skill(dude, 3=Unarmed, 5) — Дракон поднимает Безоружный на 5. train_skill зеркалит op_critter_mod_skill на gDude. Скилл-only once_per_npc: durable не нужен.",
+      "design_truth": "Дракон ЗАДУМАН учить рукопашному бою — ванильный прирост навыка, проглатываемый свободным диалогом. Разовость — once_per_npc.",
+      "design_source": [
+        "тред 1523695849329266830 (класс «NPC учит навыку, прироста нет»)",
+        "fo2_int_disasm fcdragon.int learn2 @0x6672 mod_skill(3,5)"
+      ]
+    },
+    "origin": "vanilla"
+  },
+  "sf_lopan_teach": {
+    "active": true,
+    "intent": "train",
+    "once_per_npc": true,
+    "_activated": "2026-07-17: a follow-on in the training track. Lo Pan is San Francisco's other unarmed-combat master (the Dragon's rival) and teaches Unarmed. Skills-only once_per_npc with no durable guard.",
+    "scope": {
+      "script": "fclopan",
+      "intent_descriptor": "научить игрока рукопашному бою — Ло Пэн, мастер боевых искусств Сан-Франциско, поднимает навык Безоружный (+5; движок ополовинит тегнутый, потолок 300)",
+      "offer_brief": "Ло Пэн в Сан-Франциско обучает рукопашному бою. Попросишь научить — Безоружный реально вырастет (+5, как в оригинале). Разовое.",
+      "offer_brief_source": [
+        "fo2_int_disasm fclopan.int: proc learn2 @0x669e mod_skill(3=Unarmed, 5) — ровно +5 Безоружный (gdialog-free эффект-нода)"
+      ]
+    },
+    "effect": {
+      "skills": ["Unarmed:5"]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero",
+      "skills_only"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla fclopan.int learn2 @0x669e critter_mod_skill(dude, 3=Unarmed, 5) — Ло Пэн поднимает Безоружный на 5. train_skill зеркалит op_critter_mod_skill на gDude. Скилл-only once_per_npc: durable не нужен.",
+      "design_truth": "Ло Пэн ЗАДУМАН учить рукопашному бою (соперник Дракона; игрок тренируется у одного) — ванильный прирост навыка. Разовость — once_per_npc.",
+      "design_source": [
+        "тред 1523695849329266830 (класс «NPC учит навыку, прироста нет»)",
+        "fo2_int_disasm fclopan.int learn2 @0x669e mod_skill(3,5)"
+      ]
+    },
+    "origin": "vanilla"
+  },
+  "navarro_chris_enlist": {
+    "active": true,
+    "intent": "gate_pass",
+    "terminal": true,
+    "_activated": "2026-07-17: Chris the refueller at the entrance to Navarro. Free dialogue used to hand over the password AS PROSE — mvar(0) was never set, so the engine honestly went on treating the player as a civilian (Dornan: 'you're spies!', plus the alarm). Onboards the vanilla CLEAN effect node Node997 (set_map_var(0,1) + a one-shot 1500 XP) as a gate_pass atom with an ENGINE-side check=Speech (vanilla Node019a/Node022a: roll_vs_skill(Speech,-10)). The Node020->021 chain is NOT executed — both are gsay nodes, so exec_proc is UNSAFE — and their content ({199}-{204}: the password sheepshead, the gate through the forest, stay on the path) is voiced by the LLM from offer_brief, while Node997 carries the mechanics.",
+    "scope": {
+      "script": "ccchris",
+      "intent_descriptor": "убедить Криса-заправщика, что ты новобранец из пополнения Анклава (я новобранец / из пополнения / меня прислали) — при успехе проверки Красноречия он вносит тебя в списки и выдаёт пароль",
+      "offer_brief": "Крис — старик-заправщик на станции у дороги, ТАЙНЫЙ вахтёр Анклава: он отсеивает штатских и пропускает к базе Наварро только пополнение. Если игрок называется НОВОБРАНЦЕМ из пополнения (replacement) и звучит убедительно (движок бросает проверку Красноречия), Крис извиняется за проверку и объясняет: иди к ВОРОТАМ через лес за станцией, часовому назови ПАРОЛЬ — «SHEEPSHEAD» («ОВЕЧЬЯ ГОЛОВА»), и ДЕРЖИСЬ ТРОПЫ. Новобранцы являются ОДНИ — со свитой Крис сомневается («а почему ты не один?»). Успех даёт РЕАЛЬНЫЙ опыт (движок: 1500 XP, «You conned Chris to give you the password»). Никаких предметов/крышек это не даёт; пароль — знание, а не вещь. Если база поднята по тревоге — никакого зачисления.",
+      "offer_brief_source": [
+        "CCCHRIS.MSG {190} 'Enclave? That a group or something?..' + {192} 'I want to join.' (вход в ветку)",
+        "CCCHRIS.MSG {193}/{194} 'Join up? You're a tribal! What makes you think they'd want a tribal(, and his posse no less)?' (партийная развилка ваниль: {194} = со спутниками)",
+        "CCCHRIS.MSG {199}/{200} 'Wait a minute. Are you trying to say you're one of the Enclave replacements?'",
+        "CCCHRIS.MSG {203} 'Damn. Sorry for the hassles. I'm supposed to clear a bunch of newbies coming through here but I got to weed out the trash. Anyway, just go up to the gate, through the woods there, and give 'em the password. It's 'sheepshead.' Oh, and stay on the path!' (ЯДРО брифа: пароль + маршрут)",
+        "CCCHRIS.MSG {205}/{206} '…If that's the case, then why aren't you alone?' + {207}/{208} 'I hired an escort!' (партия = второй ролл, не жёсткий блок)",
+        "CCCHRIS.MSG {800} 'You conned Chris to give you the password.' (XP-строка Node997)"
+      ]
+    },
+    "guard": {
+      "durable": "map_var(0)==0 AND gvar(511)==0",
+      "source": "map_var(0) = Navarro MVAR «Крис зачислил» (corpus-sweep 1443 .int: на карте Наварро mvar0=1 пишет ТОЛЬКО CCCHRIS Node997; читают CCGGUARD Node001/008/009/010 (опции {106}/{109}/{133} только при mvar0==1) и CCDRILL talk_p_proc (recruit-ветка Node009/Node003)). ==0 => ещё не зачислен (one-shot: после файра гвард закрыт). gvar 511 = GVAR_NAVARRO_BASE_ALERT (VAULT13.GAM:520): CCCHRIS talk_p_proc при 511>0 идёт в Node026 (флоут тревоги + Node998 hostile) — во время тревоги ваниль зачисление не предлагает. 511 добавлен в quests_db guard_gvars (манифест перегенерирован, exe пересобран)."
+    },
+    "check": {
+      "type": "Speech",
+      "vs": "",
+      "difficulty": 4,
+      "fail_line": "Слушай, приятель, не пойми превратно — но ничего тут нет, кроме пустошей да радиации. Цивилизация к югу отсюда. Туда бы и шёл, пока светло.",
+      "source": "ваниль Node019a @0x316c / Node019b @0x3208 / Node022a @0x3462: roll_vs_skill(dude,14=Speech,-10). difficulty=4 => модификатор (3-4)*10 = -10 = ванильный. vs пуст (неконтестная). fail_line — честный отвод по мотивам {143}/{209} (brush-off класс); при провале движок fx НЕ применяет, mvar0 не тронут."
+    },
+    "effect": {
+      "proc": {
+        "script": "ccchris",
+        "proc": "Node997",
+        "does": "set_map_var(0,1) + one-shot (lvar10==0) display {800} + give_exp_points(1500); НОЛЬ gdialog-опкодов (display_msg/give_exp = world-ops, exec_proc-safe по суженному правилу GATEPASS-MAPVAR-LOCALVAR)"
+      },
+      "post": [
+        "map_var(0)==1"
+      ]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla зачисление = CCCHRIS Node997 (runtime data/scripts/ccchris.int @0x3832; в ванильном master-скрипте байт-якорь записи mvar0=1 @0x3732 — единственный писатель mvar0=1 на карте Наварро по corpus-sweep): set_map_var(0,1); if lvar(10)==0 -> lvar(10)=1 + display {800} + give_exp(1500). Достижима ТОЛЬКО из Node021 {203}/{204}, куда ведут Node020 (alone-путь) и Node022a (party-путь), все гейчены success(roll_vs_skill(dude,14=Speech,-10)) в Node019a @0x316c / Node019b @0x3208 / Node022a @0x3462 с one-shot lvar(9) (провал => lvar9=1, ретрай закрыт). Node020/021/022 несут gsay_reply/giq_option (gdialog-семейство) => exec_proc UNSAFE; Node997 — чистая эффект-нода. Потребители mvar0: CCGGUARD (опции пароля {106}/{109}/{133}) и CCDRILL (recruit-диспетчер). talk_p_proc CCCHRIS: gvar511>0 -> Node026 (тревога).",
+      "design_truth": "Крис — скрытый фильтр Анклава: назваться новобранцем из пополнения и убедить его (реальная проверка Красноречия) = попасть в списки; он выдаёт пароль «sheepshead» и маршрут к воротам. Это НЕ журнальный квест (mvar0 — не quest gvar, записи в Пип-Бое нет) и НЕ телепорт — игрок сам идёт через лес к воротам. Успех канонично оплачен опытом (1500 XP, «You conned Chris»).",
+      "design_source": [
+        "тред баг-репорта 1527573965554323587: Крис выдал пароль ПРОЗОЙ, mvar0 не ставился; часовой «принял» пароль прозой, Дорнан честно счёл игрока штатским ({106}/{107} + тревога Node998)",
+        ".claude/docs/BUGFIX-BACKLOG-2026-07-17.md §1: «atom row for Крис: intent 'я новобранец/пополнение' -> real chain Node020->021->997 (password и mvar0 неразрывны, как в ванили)»",
+        "runtime-дизасм ccchris (data/scripts/ccchris.int, unofficial-patch 2014): Node019 @0x3082 партийная развилка (metarule(16,0)-gvar(18)==1), Node019a/b Speech-роллы, Node997 @0x3832 чистая эффект-нода",
+        "CCCHRIS.MSG {190}-{208}, {203} (пароль), {800} (XP); ccdrill.msg {108} 'So, you're the replacement…' (доклад разводящему сержанту Дорнану)"
+      ],
+      "reconciled": "agree: в коде есть отдельная чистая эффект-нода (Node997) И замысел = «убедить, что ты свой» через реальный Speech-ролл -> механизм = proc-form gate_pass атом (звать Node997, НЕ реплицировать set_map_var — нода сама даёт one-shot XP по lvar10) + движковый check=Speech diff 4 (ванильный mod -10). Расхождения с ванилью, ПРИНЯТЫЕ: (1) ваниль при провале ставит lvar(9)=1 и закрывает ретрай НАВСЕГДА — у нас провал ничего не пишет (fx не применяется), ретрай в новом разговоре возможен (тот же класс послабления, что тег-Speech у Кэмерона); (2) ваниль со спутниками требует ДВА последовательных ролла ({194}->{205}->Node022a) — у нас один check без партийного удорожания (партия у Криса НЕ жёсткий блок — жёсткий гейт «ОДИН» несёт часовой, см. navarro_gate_password). terminal:true — deferred exec_proc коммитится на чистом конце диалога (класс Кэмерона)."
+    },
+    "origin": "vanilla"
+  },
+  "navarro_gate_password": {
+    "active": true,
+    "intent": "gate_pass",
+    "terminal": true,
+    "_activated": "2026-07-17: the sentry at the Navarro gate (CCGGUARD). Free dialogue twice 'accepted' the password as prose, quoting {128} word for word — mvar(14) was never set, so CCDRILL honestly went on treating the player as a civilian. The vanilla Node007 carries gsay_message/gsay_reply, which makes exec_proc UNSAFE, so the effect is encoded in map_var form instead: setmapvar=14:2, the node's ONLY write; the {128} line itself is voiced by the LLM from offer_brief. Vanilla's party gate ({125}/{132}, 'recruits arrive ALONE') is expressed by the NEW predicate party_size(0)==0 — the engine emits atom_party_size with the EXACT vanilla formula (PARTY_COUNT − car(gvar18) − dude − K-9 pid 16777687), and with no data the evaluator reads 'not alone' (fail-closed). Since 0.70.19 the 'wait here' order makes the alone requirement playable.",
+    "scope": {
+      "script": "ccgguard",
+      "intent_descriptor": "назвать часовому у ворот Наварро пароль («Овечья голова»/sheepshead) как новобранец — при верном пароле он пропускает на базу и велит доложиться начальнику строевой подготовки",
+      "offer_brief": "Часовой в силовой броне у ворот базы Наварро («Стой! Федеральная собственность — вход только по допуску»). Пропускает ТОЛЬКО новобранца, которого зачислил Крис-заправщик (иначе про пополнение он и слушать не станет), ПООДИНОЧКЕ и ПО ПАРОЛЮ: пароль — «SHEEPSHEAD» («ОВЕЧЬЯ ГОЛОВА»), его выдаёт Крис на заправке. Со спутниками часовой кладёт руку на оружие: «все новобранцы являются на службу ОДНИ» — вели свите ждать в стороне и подойди один. При верном пароле сверяется («Минуту. (пауза) Так, ты в списках») и пропускает: доложиться НАЧАЛЬНИКУ СТРОЕВОЙ ПОДГОТОВКИ (сержанту Дорнану) — через ворота, мимо будки (псарни), первая дверь направо. Никаких наград/предметов и записи в Пип-Бое — это пропуск через ворота, не квест. Пароль — или знаешь, или нет: никаких «уговорить без пароля»; без пароля — только предупреждения и, при упорстве, тревога.",
+      "offer_brief_source": [
+        "CCGGUARD.MSG {103} 'Halt! This is federal property — no admittance without proper authorization.'",
+        "CCGGUARD.MSG {109} 'I'm a new recruit. I was told you'd be expecting me.' (опция видна ТОЛЬКО при mvar0==1 — Крис зачислил)",
+        "CCGGUARD.MSG {124} 'I see. May I have your password?' + {126} 'Sheepshead.' (одиночке)",
+        "CCGGUARD.MSG {125} '(places hand on weapon) All new recruits are to report for duty alone…' / {132} (повторно со свитой) — партийный отказ",
+        "CCGGUARD.MSG {128} 'One moment. (pause) Okay, you check out. Report to the drill chief. Go through the gate, past the kennel, and it's the first door on the right.' (успех — ЕДИНСТВЕННАЯ механика: mvar14=2)",
+        "CCGGUARD.MSG {131} 'Halt! — Oh. I see you've returned and you're alone this time. All right, recruit, what's the password?' (реткрай после увода свиты)",
+        "CCCHRIS.MSG {203} (источник пароля); ccdrill.msg {108} 'Welcome to Camp Navarro. So, you're the replacement…' (приёмник mvar0-состояния)"
+      ]
+    },
+    "guard": {
+      "durable": "map_var(0)==1 AND map_var(14)==0 AND gvar(511)==0 AND party_size(0)==0",
+      "source": "map_var(0)==1 = Крис зачислил (ваниль: опции {106}/{109}/{133} к Node006/007 существуют ТОЛЬКО под op_get_map_var(0)==1 — Node001 @0x26f8, Node008/009/010). map_var(14)==0 = ещё не пропущен: 14 пишется ТОЛЬКО Node007 (=2, «прошёл ворота»; corpus-sweep: других писателей mvar14 на карте Наварро НЕТ; ветка critter_p_proc mvar14==1 -> Node998 тревога литеральным писателем не подтверждена — рудимент, ==0-гвард закрывает и её). gvar(511)==0 = GVAR_NAVARRO_BASE_ALERT: talk_p_proc CCGGUARD при 511>0 -> Node012+Node998 (тревога/бой), пароль не принимается. party_size(0)==0 = ванильный Node006/008 гейт «пришёл ОДИН» (формула PARTY_COUNT − car − dude − K-9 в движке, emitAtomPartySize; без данных эвалюатор считает «не один» — fail-closed)."
+    },
+    "check": {
+      "type": "none",
+      "_note": "Vanilla does NOT roll on the password: {126} 'Sheepshead.' is an option with no roll_vs_skill (Node006 -> Node007 unconditionally). The password is KNOWLEDGE, gated by mvar(0)==1 — the engine-side fact that Chris told it to you. There is nowhere for a roll to come from: the sentry checks the word against a list, he is not swayed by eloquence, and 'talk your way past without the password' does not exist in vanilla and is NOT being invented here (anti-invention). The grounding requirement — that the player actually SAID the password — lives on the intent/LLM layer (the classifier stems plus the atom_id channel), not in check."
+    },
+    "effect": {
+      "map_vars": [
+        "set map_var 14 = 2"
+      ],
+      "post": [
+        "map_var(14)==2"
+      ]
+    },
+    "invariants": [
+      "guard_consistent",
+      "monotonic",
+      "idempotent_from_zero"
+    ],
+    "intent_verification": {
+      "code_truth": "vanilla пропуск = CCGGUARD Node007 @0x2ae0 (master.dat, data/scripts НЕ переопределяет): ПЕРВОЙ операцией set_map_var(14,2) @0x2ae2 (байт-якорь C0 01 00 00 00 0E C0 01 00 00 00 02 80 C4 — ЕДИНСТВЕННЫЙ писатель mvar14=2 во всех 1443 скриптах корпуса), затем IN<4 ? gsay_message {128} + call Node007a : gsay_reply {128} + giq {130}->Node999. gsay/giq = gdialog-семейство => exec_proc UNSAFE => эффект-форма map_vars (fxh_setmapvar, immediate, allowlist kAtomEffectMapVars). Достижимость ванили: Node001/008/009/010 опции пароля только при mvar(0)==1; Node006 @0x2a12 / Node008 @0x2bcc партийная формула metarule(16,0)-gvar(18)-1-(party_member_obj(16777687 K-9)!=0)>=1 -> {125}/{132} отказ (lvar10=1 -> повторный вход через Node008). Потребитель mvar14: critter_p_proc CCGGUARD (==1 -> тревога); mvar14==2 = «прошёл честно». Признание новобранцем у Дорнана несёт mvar0 (CCDRILL talk_p_proc), НЕ mvar14.",
+      "design_truth": "ворота Наварро задуманы проходимыми ТОЛЬКО для зачисленного Крисом одиночки со словом-паролем «sheepshead»: часовой сверяет пароль (без ролла), пропускает и направляет к сержанту Дорнану; свита = отказ с рукой на оружии ({125}/{132}), упорство без пароля = тревога. Пропуск — терминальный обмен ({128} -> {130} 'Ok.' -> конец диалога), не журнальный квест.",
+      "design_source": [
+        "тред баг-репорта 1527573965554323587: часовой дважды «принял» пароль прозой с дословным {128}, mvar14 не ставился; Дорнан честно счёл игрока штатским -> {106}/{107} + Node998 тревога",
+        ".claude/docs/BUGFIX-BACKLOG-2026-07-17.md §1 blueprint: «atom row for Ccgguard: intent gate_pass -> real Node007 (set_map_var(14,2) + {128}); guards: mvar0==1; ПАРТИЯ — чтобы ванильный 'новобранцы приходят ОДНИ' остался движковым»",
+        "scratchpad ccgguard_disasm: Node001 @0x26f8 (гейт опций по mvar0), Node006 @0x2a12 (партийная формула + {124}/{125}), Node007 @0x2ae0 (mvar14=2 + {128}), Node008 @0x2bcc (реткрай), Node998 @0x2f74 (lvar5=2 + gvar511=1), critter_p_proc mvar14==1 -> Node998",
+        "CCGGUARD.MSG {103}-{134}; VAULT13.GAM:520 GVAR_NAVARRO_BASE_ALERT (511), :27 GVAR_PLAYER_GOT_CAR (18); party.txt [Party Member 24] pMK9_PID=16777687"
+      ],
+      "reconciled": "agree: в коде есть один писатель пропуска (Node007: mvar14=2) И замысел = сверка пароля без ролла -> механизм = map_var-форма (setmapvar=14:2 — эффект-нода UNSAFE для exec_proc, реплицируем её ЕДИНСТВЕННУЮ запись; прецедент CCDRGRD в GATEPASS-плане: «setmapvar=13:1 достаточно»), check=none, guard = движковые факты mvar0/mvar14/gvar511 + НОВЫЙ движковый скаляр party_size (ванильная формула в emitAtomPartySize; вариант А из ревью-черновика, НЕ perception-veto). terminal:true — ванильный обмен завершается ({130} 'Ok.' -> Node999), продолжать разговор после «Проходите» нечем; fx immediate, коммит-риска нет."
+    },
+    "origin": "vanilla"
+  }
+}

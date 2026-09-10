@@ -1,0 +1,24 @@
+{
+  "_comment": "BASE structured-state domains. The GM writes VALIDATED deltas into mem['ledger'] (in world_memory, save-safe; NEVER canon gvars). A content mod adds domains by dropping registry/<mod>.state.json (an open registry, like *.checks.json). predicates: type=enum|string|number, values (for enum), in_prompt (inject into the model's context). mutex: groups of predicates of which a subject can hold only ONE (setting one clears the siblings). The starting domains are object_state (which formalizes the older ad-hoc mem['objects'] store) and faction_stance (the freedom unlock FO2 does not natively model).",
+  "domains": {
+    "faction_stance": {
+      "subject_kind": "faction",
+      "predicates": {
+        "stance_to_player": { "type": "enum", "values": ["allied", "friendly", "neutral", "wary", "hostile"], "in_prompt": true }
+      }
+    },
+    "object_state": {
+      "subject_kind": "object",
+      "predicates": {
+        "problem": { "type": "string", "in_prompt": true },
+        "fixed": { "type": "enum", "values": ["yes", "no"], "in_prompt": true }
+      }
+    },
+    "critter_state": {
+      "subject_kind": "critter",
+      "predicates": {
+        "status": { "type": "enum", "values": ["alive", "dead", "fled"], "in_prompt": true }
+      }
+    }
+  }
+}

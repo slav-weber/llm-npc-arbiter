@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "quest_id": "klamath_rustle_brahmin",
+  "gvar": 102,
+  "name": "Украсть браминов",
+  "name_note": "quests.txt row 1502,303,102,1,2 (desc msg 303). Anchor on the NUMBER 102 — the engine enum names index 102 differently (GVAR_QUEST_KILL_EVIL_PLANTS); the number is the truth.",
+  "display_threshold": 1,
+  "completed_threshold": 2,
+  "area": "Klamath",
+  "maps": [
+    14
+  ],
+  "npcs": {
+    "giver": "kcdunton",
+    "obstacle": "kctorr",
+    "others": [
+      "kcbrahmn"
+    ]
+  },
+  "brief": "Помоги братьям Дантонам увести скот у простака Торра. Встреча на пастбище к востоку от города (вечером, ~18:00), где Торр пасёт своих браминов. ЗАДАЧА ИГРОКА — нейтрализовать Торра: отговорить, оглушить или спровадить (Дантоны просят сильно не калечить). Самих браминов уводят САМИ Дантоны, пока ты отвлекаешь Торра. Игрок НЕ гонит браминов лично и НЕ крадёт конкретное число голов; награда общая, без оплаты за голову; конкретной суммы на приёме канон НЕ называет (плата — по завершении, у лавки) — обещай честную плату по характеру, без числа.",
+  "_brief_provenance": "BYTE-MIGRATED from atom_registry klamath_rustle_goto scope.offer_brief. NOTE: no next_step in the registry for this quest -> stages carry none (flag-ON/OFF parity).",
+  "stages": [
+    {
+      "val": 0,
+      "phase": "offer"
+    },
+    {
+      "val": 1,
+      "phase": "in_progress"
+    },
+    {
+      "val": 2,
+      "phase": "done"
+    },
+    {
+      "val": 3,
+      "phase": "done_violent"
+    }
+  ],
+  "routing": {
+    "node_roles": [
+      {
+        "script": "kctorr",
+        "proc": "node018",
+        "role": "make_leave",
+        "_src": "The dialogue guards' _MAKE_LEAVE_TARGETS table: the drive-off bridge node (CALLs Node930); routed by engine TARGET, never text."
+      },
+      {
+        "script": "kctorr",
+        "proc": "node930",
+        "role": "make_leave",
+        "_src": "KCTORR Node930 @0x380a — set 102=2 (+77,184,71): the drive-off completion proc."
+      },
+      {
+        "script": "kcdunton",
+        "proc": "node999",
+        "role": "dead_end",
+        "_src": "The dialogue guards' _QUEST_DEADEND_TARGETS table: the Duntons' end node — never a route target."
+      },
+      {
+        "script": "kcdunton",
+        "proc": "node008",
+        "role": "pay",
+        "_src": "The pay GATE (reads GVAR_RUSTLE_REWARD 181 — already-claimed branch)."
+      },
+      {
+        "script": "kcdunton",
+        "proc": "node009",
+        "role": "pay",
+        "_src": "The PAYOUT proc (W(181,1) + $50 + Dunton's Drymeat, msg {190})."
+      }
+    ],
+    "accept": {
+      "owner": "dialogue",
+      "sets": "gvar 102=1 AND internal gvar 179=1 (RUSTLE_ACCEPT, not a quest gvar)",
+      "via_atoms": [
+        "klamath_rustle_goto"
+      ],
+      "code_ref": "KCDUNTON.int Node973/989 (accept-only, gsay -> not exec_proc-safe) / Node975 (accept-AND-go: 102=1+179=1+gfade+load_map 14); go_now-ONLY atom form (internal-flag limitation)"
+    },
+    "go_to_scene": {
+      "proc": "kcdunton:Node975",
+      "does": "set 102=1 + set 179=1 + gfade + load_map(14)"
+    },
+    "pay_node": {
+      "script": "kcdunton",
+      "proc": "Node009",
+      "_grounded": "KCDUNTON disasm (2026-07-03) — Node008 R(181)x3 (the pay GATE: already-claimed branch) -> Node009 W(181,1) (the PAYOUT: $50 + Dunton's Drymeat, msg {190}). gvar 181 = GVAR_RUSTLE_REWARD per VAULT13.GAM (the msg-id/gvar number coincidence with option msg {181} was cross-checked — NOT a disasm misread)."
+    }
+  },
+  "scene": {
+    "map": 14,
+    "win_vars": [
+      {
+        "tag": "scorps_killed",
+        "mvar": 5
+      },
+      {
+        "tag": "total_scorps",
+        "mvar": 19
+      },
+      {
+        "tag": "torr_on_map",
+        "mvar": 4
+      }
+    ],
+    "win_condition": "the radscorpions must stay ALIVE (killing them all completes the GUARD quest 182=2 and locks the rustle); Torr must be gotten OUT (drive-off via KCTORR Node013->018->930, or killed)",
+    "content": "Torr is out in the pasture with his herd; the radscorpions in the woods to the SOUTH must STAY ALIVE for the rustle; the Duntons wait west of Torr's camp. Torr's drive-off option (msg-234) is surfaced ONLY while 179==1."
+  },
+  "guard_gvars": [
+    188,
+    204,
+    202,
+    181
+  ],
+  "_guard_181_note": "181 = GVAR_RUSTLE_REWARD (.GAM-confirmed) — the DURABLE claimed-signal; adding it here puts it on the generated kAtomGuardGvars manifest so the snapshot emits its live value (reward_pending = done AND 181==0).",
+  "spoil_gvar": 202,
+  "completed_outcomes": {
+    "done_violent": "оно закрыто УБИЙСТВОМ Торра: Торр МЁРТВ, и за его смерть Кламат настроен к игроку ВРАЖДЕБНО. Дантоны получили своё стадо живым и по-своему довольны добычей, но дело сделано КРОВЬЮ — не выдавай это за чистый или мирный успех и не ври, будто Торр просто ушёл.",
+    "spoiled": "стадо ПЕРЕБИТО — Дантонам досталась падаль, а не живой скот: это ПРОВАЛ, а не победа. НЕ называй это «выполнено»/«сделано», НЕ благодари и НЕ жди награды (за дохлых браминов её нет); признай честно, что угон сорван — добыча загублена."
+  },
+  "_completed_outcomes_provenance": "BYTE-MIGRATED from atom_registry klamath_rustle_goto scope.completed_outcomes (outcome taxonomy: success 102==2 default; done_violent 102==3; spoiled 202==1 overrides).",
+  "completion": {
+    "mechanism": "dialogue-outcome",
+    "owner": "dialogue",
+    "condition": "rustle accepted (179==1, set with 102=1 at the Duntons) -> KCTORR Node013 READs gvar 179 and surfaces the msg-234 option -> Node018 CALLs Node930 -> Node930 set_global_var(102,2) (+77,184,71). The brain only routes to the engine-SURFACED option by TARGET; 179==0 -> not surfaced -> no route (faking-proof). Kill variant: KCTORR destroy_p_proc -> 102=3 (+70,75,68).",
+    "sets": "gvar 102=2 (drive-off; +77,184,71) | 102=3 (kill; +70,75,68)",
+    "code_ref": "KCTORR.int Node930 @0x380a; gate Node013 @0x42ca (reads 179, option msg-234); bridge Node018 @0x4a10; destroy_p_proc @0x2bda/0x2be8",
+    "second_writer": null
+  },
+  "reward": {
+    "xp": 250,
+    "xp_source": "walkthrough only (NOT visible in the Node930 disasm slice)",
+    "caps": 50,
+    "items": [
+      "Dunton's Drymeat"
+    ],
+    "paid_by": "kcdunton",
+    "claimed_gvar": 181,
+    "notes": "$50 + Drymeat paid LATER at the Duntons' SHOP (option {181} -> payout Node009, msg {190}) — NOT at the pasture; never promise caps at completion. claimed_gvar 181 = GVAR_RUSTLE_REWARD (engine-durable: Node009 sets it, Node008 gates the re-claim). karma -70 (evil, walkthrough)."
+  },
+  "fail": {
+    "kill_scorpions": "killing all radscorpions auto-completes the GUARD quest (182=2) and LOCKS the rustle",
+    "enemy_torr": "anger Torr without killing -> 203=1 -> he won't talk -> drive-off unreachable",
+    "kill_brahmin": "kcbrahmn destroy_p_proc -> 202=1 (spoiled: the goods are dead)",
+    "scare_duntons": "Speech 75+ call-it-off -> KCDUNTON Node994: 76=1 + 182=2 (rustle FAILS, guard completes)",
+    "duntons_dead_or_enemy": "188=1 (DUNTON_DEAD) / 204=1 (ENEMY_DUNTON) block the offer/fire (atom guard)"
+  },
+  "anti_invention": [
+    "The brain must NEVER write gvar 102 — Node930/destroy_p_proc set it; the brain only routes to the surfaced option.",
+    "NO «wait for night» — the radscorpions never appear in the pasture; the rustle resolves by getting Torr out.",
+    "The ONLY coded drive-off route is KCTORR Node013/msg-234 -> Node018 -> Node930 — route by engine TARGET, never text (the Node999 dead-end shares its жуки/мумук wording).",
+    "102=3 (kill) is the VIOLENT variant — never present it as a clean success.",
+    "No caps at the pasture — $50 + Drymeat is collected later at the Duntons' shop."
+  ],
+  "links": {
+    "enables": [
+      "rescue_torr (gvar 391) — only after DRIVE-OFF (71=1); the KILL path (70=1) locks it"
+    ],
+    "related_same_scene": [
+      "klamath_guard_brahmin (gvar 182)"
+    ]
+  },
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt row '1502, 303, 102, 1, 2'",
+    "brief_outcomes": "atom_registry.json klamath_rustle_goto (byte-migrated; its offer_brief_source cites KCDUNTON.MSG {198,200/201,404,424,700} + the {190}-reward caveat)",
+    "completion": "KCTORR/KCDUNTON disasm; adversarial refuter: NOT refuted",
+    "roles": "The dialogue guards' _MAKE_LEAVE_TARGETS/_QUEST_DEADEND_TARGETS tables (code tables migrating into data)"
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "NOT refuted",
+    "live_test": "drive-off class live-proven; the gate scenario re-proves it end-to-end including the reward leg"
+  },
+  "status": "DONE"
+}

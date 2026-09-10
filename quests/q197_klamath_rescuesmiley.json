@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "quest_id": "klamath_rescue_smiley",
+  "gvar": 197,
+  "name": "Спасти траппера Смайли",
+  "name_note": "quests.txt row = '1502, 301, 197, 1, 2' (desc quests.msg {301} 'Rescue Smiley the Trapper.'). Anchor on the NUMBER 197. RU title here is a faithful translation of the English {301}; the game's Russian quests.msg is NOT present in this checkout (no text/russian/) — confirm the EXACT localized RU journal title and swap if it differs (Ardin's passport spells him 'Смайли').",
+  "display_threshold": 1,
+  "completed_threshold": 2,
+  "area": "Klamath",
+  "maps": [12, 9],
+  "_maps_note": "Map 012 = 'Klamath Toxic Caves' (klatoxcv, MAPS.TXT:150-152) — where Smiley is found and out of which he has to be led; KCSMILEY (Smiley) lives and heartbeats here, safe tile 18335 elev 0; KLATOXCV.GAM is present. Map 009 = 'Klamath Downtown' (kladwtwn, MAPS.TXT:125-127) — the Buckner house, where Ardin gives the quest; its map_enter_p_proc bumps 197->3 on the return. There is no teleport and no go_now atom — the player WALKS the worldmap to the Toxic Caves (worldmap 'Свалка токсичных отходов', NE of Klamath).",
+  "npcs": {
+    "giver": "kcardin",
+    "others": ["kcsmiley"]
+  },
+  "_npcs_note": "giver = Ardin Buckner (KCARDIN.int), Smiley's sweetheart, at the Buckner house in Klamath Downtown. kcsmiley.int = Smiley the trapper, wounded by geckos ('I'm hurt too bad to get past those damn lizards on my own', KCSMILEY {110}); his Node970 arms the walk-out as a companion, and leave_player (heartbeat) writes the completed value once Smiley reaches the exit. NB: Ardin ALSO gives Rescue Torr (391) — the offers are distinct (the Smiley branch is separate).",
+  "brief": "Ардин Бакнер из Лагеря Клэмат (дом Бакнеров) — не только мать Торра, но и возлюбленная траппера по имени Смайли. Смайли ушёл в свой «последний поход»: он верил, что знает, откуда берутся золотые гекконы — какой-то родник, тайная пещера или хранилище, — и хотел это доказать. Он уже на две недели просрочил возвращение, и Ардин места себе не находит. ЗАДАЧА ИГРОКА — добраться до Токсичных пещер (Map 012, к северо-востоку от Кламата), найти Смайли живым и вывести его в безопасность. Смайли ранен гекконами и сам через ящеров не пройдёт — его нужно ПРОВЕСТИ (он идёт с игроком как временный спутник), а не просто «разведать» или «перебить гекконов»; завершение засчитывает движок, когда Смайли достигает выхода. Если Смайли погибнет — дело провалено. Конкретной суммы награды канон при приёме НЕ называет; благодарность Ардин — освободить Сулика (её больше не держит нужда в его помощи). Обещай честную благодарность, без числа.",
+  "_brief_provenance": "Grounded in KCARDIN.MSG {150}{180}{330}{340}{341}{350}{110}{630} + KCSMILEY {110}; mechanical facts from byte-verified disasm (accept W(197,1), completion W(197,2), fail W(197,4)).",
+  "stages": [
+    { "val": 0, "phase": "offer" },
+    {
+      "val": 1,
+      "phase": "in_progress",
+      "say": "Нашёл уже моего Смайли? Не знаю, сколько он там продержится один. Прошу, отыщи его.",
+      "point_to": "Токсичные пещеры (Map 012) — к северо-востоку от Кламата; Ардин отмечает на карте, куда Смайли ушёл ({350} 'let me mark on your map where he talked about looking')",
+      "next_step": "Дело ИДЁТ. Иди в Токсичные пещеры (СВ от Кламата), найди Смайли, дай ему присоединиться (он ранен и сам через гекконов не пройдёт) и выведи его к выходу — тогда движок засчитает спасение. Если Смайли погибнет — дело провалено. Завершение объявлять игрок не должен: пока движок не засчитал (Смайли у выхода), дело НЕ сделано."
+    },
+    {
+      "val": 2,
+      "phase": "done",
+      "say": "Ты нашёл моего Смайли — спасибо тебе огромное! Я уж совсем было его похоронила. Теперь, когда он вернулся, Сулик нам, пожалуй, больше не нужен.",
+      "point_to": null,
+      "next_step": null,
+      "_src": "KCARDIN.MSG {110}/{630}/{660} completion thank-you ('You found my Smiley -- thank you so much! ... With him back I guess we won't need Sulik anymore'); the engine writes 197=2 through KCSMILEY leave_player once Smiley reaches the exit of the Toxic Caves."
+    },
+    {
+      "val": 3,
+      "phase": "done",
+      "say": "Смайли снова дома — не знаю, как тебя и благодарить. Сулик теперь свободен от долга передо мной.",
+      "point_to": null,
+      "next_step": null,
+      "_src": "197=3: kladwtwn map_enter @0x1ef0 bumps 197->3 when the rescued Smiley gets back to Klamath Downtown (engine-side, post-completion). This is ALSO a success (the deed is closed) — do not confuse it with the death value (4)."
+    },
+    {
+      "val": 4,
+      "phase": "failed",
+      "say": "Мой Смайли... его сожрали гекконы. Ты опоздал. Уходи.",
+      "point_to": null,
+      "next_step": null,
+      "_src": "197=4: KCSMILEY destroy_p_proc @0x222e W(197,4) — Smiley is KILLED. A VANILLA QUIRK: 4 >= completed_threshold 2, so the Pip-Boy formally closes the entry as 'completed', BUT this is a FAILURE (Ardin branches on 197==4 in Node053, mourning {710}/{402}). The explicit 'failed' stage here stops stage_for from falling back to the nearest lower stage (2=done) and passing Smiley's death off as a rescue."
+    }
+  ],
+  "routing": {
+    "node_roles": [
+      {
+        "script": "kcardin",
+        "proc": "Node960",
+        "role": "accept",
+        "_src": "KCARDIN.int Node960 @0x2fe4 — set_global_var(197,1) byte-exact C0 01 00 00 00 C5 C0 01 00 00 00 01 80 C6. Accept path #1. NO map op on the node."
+      },
+      {
+        "script": "kcardin",
+        "proc": "Node970",
+        "role": "accept",
+        "_src": "KCARDIN.int Node970 @0x3032 — set_global_var(197,1) byte-exact (identical signature to Node960). Accept path #2. Reached via accept option {341} 'I'd like to help. I could look for him for you.' -> post-accept {350} 'let me mark on your map...'. NO map op (only KCARDIN Node920 carries gfade)."
+      },
+      {
+        "script": "kcsmiley",
+        "proc": "Node970",
+        "role": "escort_join",
+        "_src": "KCSMILEY.int Node970 (proc[20]) @0x31d6 — ARMS the walk-out: local_var[10]=1 + critter_add_trait(team=0, friendly). Surfaced as REAL dialogue options KCSMILEY Node003 {132} / Node006 {161} / Node009 {191}{192} / Node010 {201}, all targeting Node970 ('come with me / lead you out / you can join me'). This node arms the completion heartbeat (critter_p_proc CALLs leave_player only while local_var[10]==1). The escort_join router (dlg_guards _st_route_escort_join) routes the player's 'пошли отсюда / выведу тебя / за мной' intent HERE; the engine runs the real proc, the brain never writes the gvar."
+      }
+    ],
+    "_completion_writer_not_a_role": "KCSMILEY.int leave_player @0x2b34 — set_global_var(197,2) byte-exact C0 01 00 00 00 C5 C0 01 00 00 00 02 80 C6 @0x2b78. CALLed from critter_p_proc @0x1182 (heartbeat) once escorted-Smiley reaches ~7 tiles of tile 18335 elev 0 on Map 012, gated local_var[10]==1. ENGINE-OWNED (critter heartbeat / party-leave callback), NOT a routable dialogue node -> intentionally NOT a node_role. See completion{}.",
+    "accept": {
+      "owner": "dialogue",
+      "sets": "gvar 197=1",
+      "via_atoms": ["klamath_rescue_smiley_accept"],
+      "code_ref": "KCARDIN.int Node960 @0x2fe4 + Node970 @0x3032 — pure data-delta W(197,1) on both, NO map op. Player walks to the Toxic Caves (no load_map / go-now node)."
+    },
+    "go_to_scene": {
+      "proc": null,
+      "does": "NO teleport — Ardin gives no key and no ride; {350} merely MARKS the worldmap ('let me mark on your map where he talked about looking'). The player walks the worldmap to Klamath Toxic Caves (Map 012). No load_map/go-now node -> no go_now atom."
+    }
+  },
+  "guard_gvars": [197, 68],
+  "_guard_gvars_note": "Offer gate: KCARDIN talk_p_proc reads R(197) (must be 0 = not-yet-accepted for the offer branch) and R(68) (GVAR_ENEMY_KLAMATH must be 0 = town not hostile). There is NO separate SMILEY_MISSING gvar (unlike Torr's 71) — gvar 197 itself is the overloaded state machine (0 not-started / 1 accepted / 2 escorted-to-exit / 3 returned-to-Klamath / 4 dead). talk_p_proc also co-reads R(69),R(71),R(391) — those gate the Torr/Sulik branches, not Smiley (69 left unidentified).",
+  "completion": {
+    "mechanism": "reach-place",
+    "_mechanism_true_class": "escort / party-follower — the escortee (Smiley) becomes a temporary party member (KCSMILEY Node970: local_var[10]=1 + critter_add_trait team=0) and the engine's leave_player callback fires when he reaches his safe tile at the Toxic-Caves exit. Modeled under the schema's 'reach-place' enum (an engine-owned reach-tile write). Same class as q391 Rescue Torr; handled by the escort_join router. The join node (KCSMILEY Node970) is a concrete routable target.",
+    "owner": "engine",
+    "condition": "Smiley (kcsmiley.int) is found in the Klamath Toxic Caves (Map 012) and joins the player as a temporary companion (KCSMILEY Node970 @0x31d6: local_var[10]=1 + critter_add_trait team=0), after which his critter_p_proc @0x1182 (heartbeat) CALLs leave_player as soon as Smiley comes within ~7 tiles of tile 18335 on elevation 0. leave_player @0x2b34 sets gvar 197=2. The SOLE writer of value 2 across the whole corpus (byte sweep of 1443 scripts). owner=engine: the write is driven by the engine's critter heartbeat; the brain does NOT route and NEVER writes 197.",
+    "sets": "gvar 197=2",
+    "code_ref": "kcsmiley.int leave_player @0x2b34 (op_set_global_var 197=2, byte-exact C0 01 00 00 00 C5 C0 01 00 00 00 02 80 C6 @0x2b78; leave_player also grants reputation/karma W(48,8)+W(0,75) — engine reward boilerplate). CALLed from critter_p_proc @0x1182 (heartbeat, tile-proximity gate on local_var[10]==1). Post-completion greeting: KCARDIN.MSG {110}/{630}. Downstream: kladwtwn map_enter @0x1ef0 bumps 197->3 (Smiley home) on return to Klamath Downtown — also engine-owned, not brain-routable."
+  },
+  "reward": {
+    "xp": null,
+    "caps": null,
+    "paid_by": null,
+    "notes": "Canon names NO caps/XP figure at accept OR turn-in on the SMILEY path (the '$100' at KCARDIN.MSG {250} and '$50' are the TORR/rustle payouts — do NOT pull them in). The grounded reward for rescuing Smiley is Ardin's willingness to FREE SULIK: {110} 'With him back I guess we won't need Sulik anymore', {112} 'I'm glad you're letting Sulik go' — she releases Sulik's debt so he can join the player. Never promise a caps number."
+  },
+  "fail": {
+    "smiley_dead": "If Smiley is killed, kcsmiley.int destroy_p_proc @0x221c writes W(197,4) (byte-exact C0 01 00 00 00 C5 C0 01 00 00 00 04 80 C6 @0x222e) — the deed has FAILED; 197 never reaches a clean escorted 2. There is no separate SMILEY_DEAD gvar: value 4 of 197 itself is the death marker (Ardin branches on it in Node053 R(197), showing the mourning branch {710}/{402} 'He's dead. He was eaten by geckos.'). NB A VANILLA QUIRK: 4 >= completed_threshold 2, so in the Pip-Boy the entry formally closes as 'completed' — but it is NOT a success; see the val=4 stage (phase failed). There is no timer and no expiry.",
+    "town_hostile": "68=1 (GVAR_ENEMY_KLAMATH) blocks the offer and the accept — the KCARDIN talk_p_proc R(68) gate; attacking Ardin -> KCARDIN damage_p_proc W(68,1). Attacking Smiley himself -> KCSMILEY damage_p_proc W(205,1)+W(68,1) (205 is a Smiley-specific hostility flag, read by combat_p_proc)."
+  },
+  "anti_invention": [
+    "Accepting is ONLY a Pip-Boy flag (197=1) plus a mark on the map showing where Smiley went ({350} 'let me mark on your map'); there is NO teleport — the player walks to the Toxic Caves (Map 012) himself.",
+    "The brain NEVER writes 197 — the engine sets 197=2 through Smiley's leave_player heartbeat once he reaches the exit.",
+    "Completion means Smiley LED OUT alive. If Smiley DIES (197=4) it is a failure — do NOT announce it as done.",
+    "Smiley will not get past the geckos on his own (KCSMILEY {110} 'I'm hurt too bad to get past those damn lizards on my own') — he has to be LED OUT as a companion (the arming node KCSMILEY Node970: local_var[10]=1); it is not enough to 'kill the geckos' and not enough to 'scout'.",
+    "Canon names NO reward figure at accept (the '$100'/'$50' branches belong to TORR and the rustle, not to Smiley). The reward for Smiley is Sulik's release; invent no number.",
+    "197 is an overloaded gvar state machine (0 not started / 1 accepted / 2 led to the exit / 3 back in Klamath / 4 dead), NOT a plain 0/1/2. Values 3 and 4 (>= 2) are handled by explicit stages (3 = success at home, 4 = failure by death)."
+  ],
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt:79 — '1502, 301, 197, 1, 2' (loc 1502 Klamath, desc quests.msg {301}, thresholds 1/2)",
+    "quest_title": "unpacked/master/text/english/game/quests.msg {301} 'Rescue Smiley the Trapper.'",
+    "accept": "KCARDIN.int Node960 @0x2fe4 + Node970 @0x3032, both W(197,1) byte-exact (C0 01 00 00 00 C5 / C0 01 00 00 00 01 / 80 C6); talk_p_proc gate R(197),R(68); NO load_map in accept path (only Node920 carries gfade). SOLE 197=1 writer corpus-wide = KCARDIN (2 sites).",
+    "completion": "kcsmiley.int leave_player W(197,2) @0x2b78 (byte-exact); SOLE writer of value 2 corpus-wide (1443-script byte sweep of C0 01 00 00 00 C5 ... 02 80 C6: only KCSMILEY). CALLed from critter_p_proc @0x1182 heartbeat, gated local_var[10]==1 + reach ~tile 18335 elev 0 on Map 012.",
+    "join_arm": "kcsmiley.int Node970 (proc[20]) @0x31d6 — local_var[10]=1 + critter_add_trait(team=0 friendly); surfaced via KCSMILEY Node003 {132}/Node006 {161}/Node009 {191}{192}/Node010 {201} -> Node970; intro {110} 'I'm hurt too bad to get past those damn lizards on my own'.",
+    "full_writer_set": "corpus byte-sweep gvar 197 (1443 *.int): KCARDIN 197=1 @0x2fe4,@0x3032; KCSMILEY 197=2 @0x2b78 (done), 197=4 @0x222e (death); kladwtwn 197=3 @0x1ef0 (Klamath Downtown map_enter bump — reads 197 vs 2 then W(197,3), return-home step, engine-owned). Total 5 write sites.",
+    "fail": "kcsmiley.int destroy_p_proc @0x221c W(197,4) byte-exact @0x222e. No separate SMILEY_DEAD gvar; Ardin's Node053 R(197) branches on value 4 (mourning {710}/{402}). Attacking Smiley -> KCSMILEY damage_p_proc W(205,1)+W(68,1).",
+    "maps": "unpacked/master/data/MAPS.TXT — [Map 012] Klamath Toxic Caves / klatoxcv (Smiley found + escort completes); [Map 009] Klamath Downtown / kladwtwn (giver Ardin @ Buckner House; 197->3 return bump). KLATOXCV.GAM present.",
+    "no_smiley_missing_gvar": "KCARDIN talk_p_proc reads R(68),R(69),R(71),R(391),R(197): for the SMILEY path only R(197) (state) + R(68) (town-hostile) apply; R(69)/R(71)/R(391) are Torr/Sulik-branch gates. No dedicated SMILEY_MISSING gvar exists (unlike Torr's 71) — 197 itself carries the missing/searching state (value 1).",
+    "offer_text": "KCARDIN.MSG {150}/{510} greeting-missing, {172} topic 'Tell me about Smiley', {180} deed ('one last quest'), {330} where/why ('golden geckos ... hidden cave or vault'), {340} 'two weeks later ... I'm worried', {341} accept option 'I'd like to help. I could look for him for you.', {350} post-accept 'let me mark on your map', {360}/{910} in-progress re-ask, {110}/{630}/{660} completion thank-you (+ Sulik freed), {402}/{710} 'he's dead' report.",
+    "adversarial_refute": "Byte-re-decoded: (1) accept SOLE 197=1 writer = KCARDIN, two nodes @0x2fe4/@0x3032, byte-identical; (2) completion SOLE 197=2 writer = KCSMILEY leave_player @0x2b78, corpus-unique; (3) fail 197=4 = KCSMILEY destroy_p_proc @0x222e; (4) 3rd writer kladwtwn 197=3 @0x1ef0 is a post-completion map-enter bump, not accept/completion; (5) thresholds 1/2 == quests.txt row 79. Classification = escort/reach-tile (write in critter heartbeat, NOT destroy/map_exit/make_leave-option/greeting-auto) -> same class as q391."
+  },
+  "escalation": {
+    "reason": "ESCORT / REACH-TILE completion — 197=2 is written by KCSMILEY leave_player, invoked from critter_p_proc (heartbeat) once escorted-Smiley reaches the Toxic-Caves exit tile (Map 012) while his follow flag (local_var[10]) is set.",
+    "resolved": "ESCORT_JOIN ROUTER BUILT (2026-07-03) — same handler as q391. Routing the player's 'come with me / lead you out' intent to the vanilla arm-node KCSMILEY Node970 is handled by the dialogue guards' _st_route_escort_join (+ the «РОЛЬ: увести в безопасность» option annotation). Node970 is a concrete routable target (surfaced as real options), so the engine runs the real proc (local_var[10]=1 + team=0) and its heartbeat completes the escort. Completion (197=2) is engine-owned + faking-proof and 197 is visible in the frame, so the completed-quest acknowledgment works; the death quirk (197=4) is handled by an explicit failed stage. In-flight follower perception is a polish-only gap."
+  },
+  "verified": {
+    "code": true,
+    "walkthrough": true,
+    "adversarial_refute": "byte-verified + refuted: accept SOLE 197=1 writer KCARDIN Node960 @0x2fe4 / Node970 @0x3032 (byte-identical); completion SOLE 197=2 writer KCSMILEY leave_player @0x2b78 (corpus-unique, called from critter_p_proc heartbeat, gated local_var[10]==1); fail 197=4 KCSMILEY destroy_p_proc @0x222e; 3rd writer kladwtwn 197=3 (return-home bump); thresholds 1/2; offer gate 197==0 AND 68==0; NO SMILEY_MISSING gvar.",
+    "live_test": "PENDING: accept from Ardin (197=1) -> walk to Klamath Toxic Caves Map 012 -> find Smiley, say «пошли отсюда / выведу тебя» (escort_join routes to KCSMILEY Node970 -> local_var[10]=1 + team=0) -> lead him to the exit (~tile 18335 elev 0) -> engine heartbeat fires leave_player -> 197=2 -> Ardin acknowledges + frees Sulik. Escort_join handler BUILT; NO engine rebuild needed (guard gvars 197/68 already mirrored). The RU journal title needs confirming against the game's Russian quests.msg."
+  },
+  "status": "DONE"
+}

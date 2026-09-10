@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "quest_id": "klamath_kill_rat_god",
+  "gvar": 390,
+  "name": "Убить крысиного бога",
+  "name_note": "quests.txt row 1502,304,390,1,2 (desc msg 304; quests.msg {304} 'Kill the rat god'). VAULT13.GAM:399 GVAR_QUEST_RAT_GOD (enum name matches for once — still anchor on the NUMBER 390).",
+  "display_threshold": 1,
+  "completed_threshold": 2,
+  "area": "Klamath",
+  "maps": [11],
+  "_maps_note": "Map 011 = 'Klamath Rat Caves' (klaratcv, maps.txt:141-143) — the scene where the rat god is killed. Slim (giver) is in Klamath downtown; he hands a door KEY and the player WALKS through the north door of Trapper Town (no teleport, no go_now atom).",
+  "npcs": { "giver": "kcslim", "others": ["kcratgod"] },
+  "_npcs_note": "giver = Slim Picket (KCSLIM.int). kcratgod.int = the rat god Keeng Ra'at critter whose destroy_p_proc writes the completed value.",
+  "brief": "Помоги Слиму Пикету с крысами в северной части Лагеря Трапперов: он даёт ключ от запертой двери у себя за спиной, а за ней — кишащие крысами ходы. ЗАДАЧА ИГРОКА — перебить крыс и, главное, убить гигантского «крысиного бога» (Кинг Ра'ат), что верховодит всей стаей. Игрок идёт туда САМ (без телепорта); это запись в журнал, награды за число убитых крыс нет. Конкретной суммы награды канон при приёме НЕ называет — обещай честную плату по характеру, без числа.",
+  "_brief_provenance": "BYTE-MIGRATED from atom_registry klamath_ratgod_accept scope.offer_brief.",
+  "stages": [
+    { "val": 0, "phase": "offer" },
+    { "val": 1, "phase": "in_progress",
+      "say": "Крысы всё ещё там, внизу — и их главарь, крысиный бог, жив.",
+      "point_to": "запертая дверь у Слима за спиной → ходы с крысами; крысиный бог (Кинг Ра'ат) в глубине",
+      "next_step": "Дело ИДЁТ. Возьми у Слима ключ, пройди через северную дверь Лагеря Трапперов в крысиные ходы и УБЕЙ гигантского крысиного бога (Кинг Ра'ат), что верховодит стаей. Награды за число убитых крыс нет. Завершение объявлять игрок не должен — пока движок не засчитал, дело НЕ сделано." },
+    { "val": 2, "phase": "done",
+      "say": "Крысиный бог мёртв — крысы больше не полезут.",
+      "point_to": null, "next_step": null,
+      "_src": "kcratgod.int destroy_p_proc → 390=2; KCSLIM.MSG {161} completion greeting." }
+  ],
+  "routing": {
+    "node_roles": [
+      { "script": "kcslim", "proc": "node06a", "role": "accept",
+        "_src": "KCSLIM.int Node06a @0x31b6 — set_global_var(390,1) (byte-exact C0 01 00 00 01 86 C0 01 00 00 00 01 80 C6). Reached via accept option {203} 'I'm going to help you with your rat problem'." },
+      { "script": "kcslim", "proc": "node24a", "role": "accept",
+        "_src": "KCSLIM.int Node24a @0x3d16 — set_global_var(390,1) (byte-exact). Second accept path." }
+    ],
+    "accept": { "owner": "dialogue", "sets": "gvar 390=1", "via_atoms": ["klamath_ratgod_accept"],
+      "code_ref": "KCSLIM.int Node06a @0x31b6 / Node24a @0x3d16 — pure data-delta W(390,1), NO map op (MAP/TRANSITION section only gfade barter/leave, no load_map). Slim gives a door KEY; the player walks." },
+    "go_to_scene": { "proc": null, "does": "NO teleport — Slim hands a KEY; the player walks through the north door of Trapper Town to the rat caves (Map 011). No load_map/go-now node → no go_now atom." }
+  },
+  "guard_gvars": [68],
+  "completion": {
+    "mechanism": "kill-target",
+    "owner": "engine",
+    "condition": "The rat god Keeng Ra'at (kcratgod.int) is KILLED → its destroy_p_proc @0xac2 sets gvar 390=2 (byte-exact op_set_global_var, unconditional at the head of destroy_p_proc — no gate). SOLE writer of value 2 across all 1443 scripts (corpus byte-sweep: 390 written only by KCSLIM 390=1 x2 + kcratgod 390=2 x1). owner=engine: the engine's combat/destroy hook does the write; the brain routes NOTHING and never writes 390.",
+    "sets": "gvar 390=2",
+    "code_ref": "kcratgod.int destroy_p_proc @0xac2 (op_set_global_var 390=2, byte-exact C0 01 00 00 01 86 C0 01 00 00 00 02 80 C6). Post-completion greeting: KCSLIM.MSG {161}."
+  },
+  "reward": { "xp": null, "caps": null, "paid_by": null,
+    "notes": "Canon names NO caps/XP payment at accept OR turn-in (KCSLIM.MSG {160}/{161} carry no number). The only tangible give is the Trapper-Town north-door KEY (at accept); the kill yields engine COMBAT XP only. Never promise a number." },
+  "fail": {
+    "town_hostile": "68=1 (GVAR_ENEMY_KLAMATH) blocks the offer/accept — vanilla talk_p_proc R(68) gate; attacking Slim → damage_p_proc W(68,1). No timed/expiring fail branch."
+  },
+  "anti_invention": [
+    "Accept is a Pip-Boy journal flag ONLY — no teleport; the player walks to the caves himself (Slim gives a door key).",
+    "No per-rat reward and no caps/XP turn-in — the brain never writes 390; the engine sets 390=2 on the rat god's death.",
+    "The completion is the rat GOD (Keeng Ra'at), not a rat count — killing ordinary rats does NOT complete it."
+  ],
+  "sources": {
+    "engine_binding": "unpacked/master/data/quests.txt:85 — '1502, 304, 390, 1, 2'",
+    "gvar_name": "unpacked/master/data/VAULT13.GAM:399 — GVAR_QUEST_RAT_GOD (name matches; number is truth)",
+    "completion": "kcratgod.int destroy_p_proc W(390,2) @0xac2 (byte-exact); SOLE writer of value 2 (corpus-wide *.int byte sweep: {KCSLIM 390=1 x2, kcratgod 390=2 x1})",
+    "accept": "KCSLIM.int Node06a @0x31b6 / Node24a @0x3d16 W(390,1) byte-exact; talk_p_proc R(390),R(68); no load_map in accept path",
+    "maps": "unpacked/master/data/maps.txt:141-143 — [Map 011] Klamath Rat Caves / klaratcv",
+    "offer_text": "unpacked/master/text/english/dialog/KCSLIM.MSG {340}/{341} (rat god), {160} offer+key, {203} accept, {161} completion",
+    "adversarial_refute": "Completion writer + sole-writer + accept + thresholds byte-verified/refuted",
+    "brief": "atom_registry.json klamath_ratgod_accept (byte-migrated; KCSLIM.MSG {160,340,203,161})"
+  },
+  "verified": { "code": true, "walkthrough": true,
+    "adversarial_refute": "byte-verified + refuted: completion writer kcratgod destroy_p_proc @0xac2 (390=2, SOLE writer corpus-wide), accept KCSLIM Node06a/Node24a (390=1), thresholds 1/2, gate 68==0.",
+    "live_test": "PENDING: accept from Slim (get the door key) → walk to the rat caves → kill the rat god (Keeng Ra'at) → engine sets 390=2 → Slim acknowledges done." },
+  "status": "DONE"
+}
