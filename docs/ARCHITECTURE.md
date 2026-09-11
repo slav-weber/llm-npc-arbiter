@@ -41,8 +41,9 @@ prompt construction are not here.
 The model's response is a strict function call. Its fields are an intent from a fixed set
 (`valid`, `trivial`, `impossible`, `unclear`, `mercy`), the prose, an optional check to roll, and up
 to four effect slots — one per outcome grade, because the effect of a critical success is not the
-effect of a failure. `arbiter/schemas.py` holds those schemas, with `additionalProperties: false`
-throughout, so the response cannot carry a field nobody designed.
+effect of a failure. `arbiter/schemas.py` holds those schemas as data; the calling code, which is not
+part of this extract, sends them in strict mode and closes them with `additionalProperties: false`,
+so the response cannot carry a field nobody designed.
 
 The effects themselves are tokens like `item`, `caps`, `hp`, `skill_on`, `party_add`, joined by
 semicolons. The vocabulary is closed on both sides: the prompt lists it, and the engine has a table
@@ -79,7 +80,8 @@ change, and it runs in a fixed order:
 5. Apply — once, through an injected callable, which is the single write site. Tests pass a recorder;
    the runtime passes the engine bridge.
 6. For effects that call an engine procedure, re-assert every invariant on the *post*-state. A
-   violation escalates and halts further commits.
+   violation escalates and halts further commits. (No predicate shipped in this extract reads the
+   post-state, so the tests exercise the halt with a predicate they register themselves.)
 
 Steps 1 to 4 all mean the same thing when they fail: the write site is never called. There is no
 partial write and no rollback, because there is nothing to roll back.

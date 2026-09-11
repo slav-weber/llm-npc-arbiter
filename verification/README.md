@@ -8,17 +8,18 @@ bugs one at a time, from a catalogue written by an agent that never saw the test
 
 | Gate | What a pass proves | CI | pre-commit | Benchmark |
 |---|---|---|---|---|
-| `unit-tests` | the 15 tests pass (no engine, no model, no network) | every push | | yes |
+| `unit-tests` | the 34 tests pass (no engine, no model, no network) | every push | | yes |
 | `test-ratchet` | every recorded test still exists and every skip is on the allowed list | every push | | yes |
 | `lint` | ruff finds nothing under the rule set in `pyproject.toml` (E, F, W) | every push | staged files | yes |
 | `hostile-run` | every hostile turn in `adversarial/hostile_runs.py` is refused or dropped, and the control turn commits | every push | | yes |
 | `atom-gate-selftest` | the atom gate's own self-test: fail-closed loader, single write site, composite effects, post-assert and halt | every push | | yes |
 | `milestone-selftest` | a character gated by a world milestone keeps its baseline until the milestone fires; an ungated one is untouched | every push | | yes |
 | `graph-current` | `knowledge/graph.json` is exactly what `knowledge/world.json` builds | every push | | yes |
+| `data-manifest` | every designer data file (each JSON under `arbiter/`, `quests/` and `knowledge/`) has the digest recorded in `data_manifest.json`; none was changed, added or removed | every push | | yes |
 | secret scan | no secret in any commit (gitleaks 8.30.1, checksum-verified, full history) | every push | staged changes | |
 | dependency audit | no known vulnerability in the development tools pinned by `uv.lock` (the runtime has no dependencies) | every push, weekly | | |
 
-The first seven are defined once, in `gates.py`; CI calls them one by one and the benchmark runs all
+The first eight are defined once, in `gates.py`; CI calls them one by one and the benchmark runs all
 of them, so the benchmark measures exactly what CI enforces. Two of them are older than CI: the atom
 gate and the milestone gate carried their own self-tests from the private repository
 (`python -m arbiter.atom_gate`), and now CI runs them. The pre-commit gitleaks hook sees only staged
@@ -38,6 +39,17 @@ gate. It tracks ids rather than counts: a deleted test replaced by a trivial one
 Tests added, or a skip made on purpose: `uv run python -m verification.test_ratchet --update` in the
 same commit, where a reviewer sees the inventory change.
 
+### The data manifest
+
+The suite loads the designer data but asserts little of what it says, so a guard in the atom
+registry, an enumeration in the state registry, a quest's stage label or an entry of the dialect
+allowlist can change as a side effect of another task while every other gate stays green.
+`data_manifest.py` records the sha256 of every designer data file (each `*.json` under `arbiter/`,
+`quests/` and `knowledge/`, hashed with its line endings normalised to LF) in `data_manifest.json`,
+and fails, naming the files, when one is changed, added or removed. A deliberate data change runs
+`uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees the
+manifest change next to the data.
+
 ## The agent layer
 
 The gates stop what a check can express. The rest is left to review, done by agents under rules
@@ -53,9 +65,9 @@ they cannot skip:
   findings reach the report in `verification/reviews/`.
 - A Stop hook (`.claude/hooks/gates_before_stop.py`) does not let an agent that changed Python or
   JSON files finish while a gate is red, and tells it which gate.
-- `.claude/settings.json` makes editing the test inventory, the catalogues, the reports, the gate
-  list, CI or designer data (the atom registry, the state registry, the quests, the side-cars, the
-  corpus), and pushing, ask a person first; reading `.env` is denied.
+- `.claude/settings.json` makes editing the test inventory, the data manifest, the catalogues, the
+  reports, the gate list, CI or designer data (the atom registry, the state registry, the quests, the
+  side-cars, the corpus), and pushing, ask a person first; reading `.env` is denied.
 
 ## The seeded-bug benchmark
 
@@ -125,9 +137,30 @@ What the gates missed, grouped by the reason nothing failed:
 
 The split is the finding, as in legal-rag-evals: the gates stop the attacks somebody wrote down and
 the properties the self-tests assert. The chokepoint's refusal paths are well covered; what routes a
-turn to it, the vocabularies around it, the designer data and the run that grades it are not. Tests
-for these groups are the next step; after them this catalogue is training data, and the next honest
-number needs a new blind catalogue.
+turn to it, the vocabularies around it, the designer data and the run that grades it are not.
+
+### After the fixes: 20 of 20, on what is now a training set
+
+Report: [`reports/seeded-bugs-2026-09-11-after-fixes.md`](reports/seeded-bugs-2026-09-11-after-fixes.md).
+
+| Group | Closed by |
+|---|---|
+| the halt check that passed for the wrong reason (A02) | a test that halts a valid commit after a failed post-assert and lets it through after the reset, and a self-test whose second commit can fail only on the halt |
+| scenarios tried in one state (A03, A06) | tests, and two new hostile scenarios: a missing party size, the reward on a started quest |
+| branches no test drove (A04, A09, A16) | the teacher exemption against seven other effect kinds; difficulties below 1; missing, empty, cut-off, non-text and wrongly shaped graph files |
+| modules no test imported (A10–A13) | `tests/test_schemas.py`, `tests/test_result_facts.py`, `tests/test_atom_arbitration.py` |
+| designer data nobody pinned (A15, A17–A19) | the `data-manifest` gate |
+| the adversarial run's own verdict (A20) | tests that make the gate refuse everything, or reach the write site on a refusal, and expect the run to flag it |
+
+All twenty are caught now. That shows the fixes work, not that the gates generalise: the tests were
+written knowing the bugs, so the next honest number needs a second blind catalogue.
+
+Closing the gaps also turned up four places where the documentation promised more than the code;
+they are corrected or disclosed now. The schemas in `arbiter/schemas.py` are not closed by the module
+itself: the caller, which is not in this extract, applies strict mode. No predicate shipped here
+reads the post-state, so the post-assert has no shipped customer. The hostile run's recorder sees
+variable writes and procedures, not map-variable, local-variable or skill effects. And a graph file
+of the wrong shape still raised, which `knowledge/graph.py` now degrades like a missing one.
 
 ## What these numbers are not
 

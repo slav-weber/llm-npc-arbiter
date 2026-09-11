@@ -6,6 +6,7 @@
     ],
     "ask": [
       "Edit(/verification/test_inventory.json)",
+      "Edit(/verification/data_manifest.json)",
       "Edit(/verification/seeded_bugs/**)",
       "Edit(/verification/reports/**)",
       "Edit(/verification/gates.py)",

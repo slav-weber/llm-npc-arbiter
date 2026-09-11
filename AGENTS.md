@@ -29,8 +29,9 @@ Nothing here needs an engine, a model or a network.
 ## Invariants: never propose a change that breaks one
 
 1. **The model names things; it never authors an effect.** Its response is a strict function call
-   from closed schemas (`arbiter/schemas.py`, no additional properties). It picks an atom id or an
-   effect token from a closed set, and code resolves that to what a designer wrote.
+   to one of the schemas in `arbiter/schemas.py` (the caller, which is not in this extract, applies
+   strict mode and closes them). It picks an atom id or an effect token from a closed set, and code
+   resolves that to what a designer wrote.
 2. **One chokepoint, in a fixed order.** `commit_effect` in `arbiter/atom_gate.py` is the only path
    to durable state. An empty effect is a refusal; the guard is evaluated on the state before the
    turn; every declared invariant must resolve to a registered predicate (an unknown name is a
@@ -62,7 +63,10 @@ Nothing here needs an engine, a model or a network.
   (`verification/test_ratchet.py`) fails on a removed or skipped test, and changing
   `verification/test_inventory.json` needs a human decision in the same commit.
 - Do not change designer data as a side effect: the atom registry, the state registry, the quests,
-  the milestone and dialect side-cars, the knowledge corpus. Each one carries its provenance.
+  the milestone and dialect side-cars, the knowledge corpus. Each one carries its provenance. The
+  data manifest (`verification/data_manifest.py`) fails on any change to these files, and refreshing
+  `verification/data_manifest.json` with `--update` belongs in the same commit as a deliberate data
+  change and needs a human decision, like the test inventory.
 - Do not translate strings the system matches on or produces.
 - Do not add a runtime dependency: the runtime ships inside a game installation.
 - Do not edit `verification/seeded_bugs/` or `verification/reports/` unless that is the task.

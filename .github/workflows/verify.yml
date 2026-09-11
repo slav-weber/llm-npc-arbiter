@@ -52,6 +52,8 @@ jobs:
         run: uv run --frozen python -m verification.gates --only milestone-selftest --show-output
       - name: graph-current
         run: uv run --frozen python -m verification.gates --only graph-current --show-output
+      - name: data-manifest
+        run: uv run --frozen python -m verification.gates --only data-manifest --show-output
 
   secrets:
     name: secret scan (full history)

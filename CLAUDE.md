@@ -9,6 +9,6 @@
 - A Stop hook (`.claude/hooks/gates_before_stop.py`) keeps you from finishing while a gate is red
   after you changed Python or JSON files. When it fires, fix the cause; never skip or weaken a test
   to silence it.
-- Editing the test inventory, the seeded-bug catalogues, the reports, CI or designer data (the atom
-  registry, the state registry, the quests, the side-cars, the corpus) asks for approval
-  (`.claude/settings.json`).
+- Editing the test inventory, the data manifest, the seeded-bug catalogues, the reports, CI or
+  designer data (the atom registry, the state registry, the quests, the side-cars, the corpus) asks
+  for approval (`.claude/settings.json`).

@@ -24,9 +24,15 @@ def enabled() -> bool:
 def _graph() -> dict:
     try:
         with open(GRAPH, encoding="utf-8") as f:
-            return json.load(f)
+            graph = json.load(f)
     except Exception:  # noqa: BLE001 — no graph file -> empty (graceful: retrieval just won't expand)
         return {"nodes": {}, "adj": {}}
+    # A readable file of the wrong shape (null, a list, a dict without the two maps) degrades the same
+    # way: found by the seeded-bug round of 2026-09-11, where such a file still raised from expansion.
+    if not (isinstance(graph, dict) and isinstance(graph.get("nodes"), dict)
+            and isinstance(graph.get("adj"), dict)):
+        return {"nodes": {}, "adj": {}}
+    return graph
 
 
 def reload() -> None:

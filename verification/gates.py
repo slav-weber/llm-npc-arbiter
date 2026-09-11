@@ -49,6 +49,8 @@ GATES: tuple[Gate, ...] = (
          "a gated character keeps its pre-milestone baseline until the milestone fires"),
     Gate("graph-current", ("-m", "verification.graph_current"),
          "knowledge/graph.json is exactly what knowledge/world.json builds"),
+    Gate("data-manifest", ("-m", "verification.data_manifest"),
+         "every designer data file matches its digest in verification/data_manifest.json"),
 )
 
 

@@ -1,0 +1,27 @@
+{
+  "digest": "sha256 of the LF-normalised bytes",
+  "files": {
+    "arbiter/atom_registry.json": "87c7f72b27ad43e9a5182ca41eccbd1e7b944a1dc8a8f7b6fd87127463957a4a",
+    "arbiter/dialect_canon.json": "c80a11bdc9c78b048ff6b1ead24ba30753f8de41447a62b5d8d7aa3a5945fba0",
+    "arbiter/milestone_gates.json": "44e381228dd951905c851821f97ee383634b4157ddbee3575a19dab6f3134bc1",
+    "arbiter/registry/fo2.checks.json": "0898f5b1b01a0d19ea475e59621d7f3f0c4d293874fc6c0cf0add80fcc52e4c3",
+    "arbiter/registry/fo2.state.json": "db89a6b1229a06e30ba35875b6d5e21e71d3361d6d4e745bfb8d9798edecede4",
+    "knowledge/bestiary.json": "1d418d794853a43930a4bbfb4aa6dfa40c788c1c6627f97fcd684a7e95170236",
+    "knowledge/bible_seed.json": "202ebbcbb99b80701182db639d6047f1b16daeaede911f36cd1a5874e6d653f4",
+    "knowledge/fo1_seed.json": "4ed77beba911ab10c4bf5b7398deca4777736c5a802c80749cda07c9bd570122",
+    "knowledge/graph.json": "2e55e4e547078ba5294064a4972c5cf9ad31eb3ba669eac73b36590a083b76ef",
+    "knowledge/lore_seed.json": "9c0b5f8a8dd9063bbc8032105aa7d800e403c21d7a99ef0e33dab9bdf2f7cbb2",
+    "knowledge/world.json": "a6279258eb56bcb1c33c5486d7d4005c3ff7bb99032d5c352853f94b51c7ced2",
+    "quests/_schema.json": "c3f65edf0616b3c3e112cda514044cd5243369e864c73d194178ecb1596b7435",
+    "quests/arroyo_nagor_dog.json": "fceacaf8fb23a0472c1e11ad16ae987cf5c79c11ec16d09716ab14a45902d00c",
+    "quests/navarro_gate_infiltration.json": "6fc97cf12e096f3be2a9f04e32ccf8ef614f4f42e598aaa7014c17e6b1c6508e",
+    "quests/nceldrid_voice_module.json": "1b47af49c37ec2de7d8fa2a69236d15cd622528f910f92544a69ae302389eac0",
+    "quests/q102_klamath_rustle.json": "17862ff54d797419d9668346734bbe8d7ae21d1e0fc5c2bbe76df89083a22a12",
+    "quests/q10_arroyo_temple_gate.json": "4b73d4a3483af91510ff53702fe4355ba6b2fe0f6c645df9f4c2e723f9d0ff18",
+    "quests/q182_klamath_guard.json": "da961562f02cd7719669c63c080ff6202032463560ad92b9f2752c6019384dc6",
+    "quests/q197_klamath_rescuesmiley.json": "cd7652558ac31f1d352515e74cbd1cb5881dffd3abbc0a4013d738011ca8cc75",
+    "quests/q198_klamath_still.json": "dbd0874eb47521171fcfe5c3accf3aa98947537d9ab303f88fff8cba862e7cbb",
+    "quests/q390_klamath_ratgod.json": "fcca406bfa6afdd96a7972d1c6d3459e7508bc198a7f3cdc0721f784877e2e9f",
+    "quests/q391_klamath_rescuetorr.json": "495ef311c722b69bf0d255f38438ba1778f97d6a72926b48d01cc6ed7ba427ff"
+  }
+}

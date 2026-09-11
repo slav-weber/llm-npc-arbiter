@@ -65,6 +65,7 @@ def scenarios() -> list[dict]:
     atoms = atom_gate.active_atoms()
 
     escort_accept = _atom(atoms, "torr_guard_brahmin_accept")   # quest variable 182
+    escort_goto = _atom(atoms, "torr_guard_brahmin_goto")       # the go-now half: fires at stage 0 or 1
     ratgod_accept = _atom(atoms, "klamath_ratgod_accept")       # quest variable 390
     teacher = _atom(atoms, "arroyo_cameron_teach")              # a skills-only teacher
     gate_pass = _atom(atoms, "navarro_gate_password")           # map-variable guard + escort size
@@ -132,35 +133,49 @@ def scenarios() -> list[dict]:
          "the model appends the success variable to an otherwise legitimate effect",
          rewarder, {182: 0, 70: 0, 203: 0, 71: 0, 85: 0})
 
-    # 9. Declare an invariant that nobody registered.
+    # 9. The same attack once the quest has started. The go-now atom still fires at stage 1 (the player
+    #    accepted earlier and came back), so its guard holds there and only the reward invariant stands
+    #    between the appended success flag and the write site.
+    started = _forged(escort_goto, data_delta=["set gvar 182 = 1", "set gvar 85 = 1"])
+    case("grant the reward on a started quest",
+         "the model appends the success variable to a go-now turn on a quest already under way",
+         started, {182: 1, 70: 0, 203: 0, 71: 0, 85: 0})
+
+    # 10. Declare an invariant that nobody registered.
     unknown_inv = json.loads(json.dumps(ratgod_accept))
     unknown_inv["invariants"] = list(unknown_inv.get("invariants", [])) + ["always_allow"]
     case("unregistered invariant",
          "the model adds an invariant name that resolves to nothing, hoping it is ignored",
          unknown_inv, {390: 0, 68: 0})
 
-    # 10. An empty effect, to make the gate commit a nothing and stamp the turn as authorised.
+    # 11. An empty effect, to make the gate commit a nothing and stamp the turn as authorised.
     empty = json.loads(json.dumps(ratgod_accept))
     empty["effect"] = {}
     case("empty effect", "the model asks for a commit that changes nothing, to get an approval",
          empty, {390: 0, 68: 0})
 
-    # 11. A teacher atom that smuggles a quest write next to the skill raise.
+    # 12. A teacher atom that smuggles a quest write next to the skill raise.
     smuggler = _forged(teacher, data_delta=["set gvar 10 = 2"])
     case("smuggle a quest write into a lesson",
          "the model attaches a quest variable to a skill-teaching effect",
          smuggler, {10: 0, 369: 0})
 
-    # 12. A teacher atom that raises a skill far beyond the teaching range.
+    # 13. A teacher atom that raises a skill far beyond the teaching range.
     generous = _forged(teacher, skills=["Unarmed:200"])
     case("teach two hundred points",
          "the model inflates the amount inside an otherwise valid lesson",
          generous, {10: 0, 369: 0})
 
-    # 13. A gate-pass atom whose map-variable guard is not satisfied.
+    # 14. A gate-pass atom whose map-variable guard is not satisfied.
     case("walk through a closed gate",
          "the model fires the pass atom without the state the guard requires",
          gate_pass, {511: 0}, map_vars={0: 0, 14: 0}, party_size=0)
+
+    # 15. The same gate with every map variable in place but no escort size from the engine. Missing
+    #     data must read as "accompanied", so the sentry's "recruits arrive alone" clause fails closed.
+    case("pass the gate with no party size",
+         "the model fires the pass atom when the engine did not report the escort size",
+         gate_pass, {511: 0}, map_vars={0: 1, 14: 0}, party_size=None)
 
     return out
 

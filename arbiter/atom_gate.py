@@ -468,11 +468,22 @@ if __name__ == "__main__":
     reset_predicates()
     reset_halt()
     register_invariant("after_is_none", lambda c: c["after"] is None)   # true pre (after=None), false post
+    # The follow-up commit declares monotonic_Q, so it is registered here: the halt must be the ONLY thing
+    # that can refuse that commit. Left unregistered, it was refused as an unresolved invariant whether the
+    # gate had halted or not, so this check passed for the wrong reason and deleting the halt changed
+    # nothing it could see (seeded bug A02 of the first blind catalogue).
+    register_invariant("monotonic_Q", lambda c: True)
     bad = {**torr_proc, "invariants": ["after_is_none"]}
     r = commit_effect(bad, {182: 0}, applier)
     assert r.committed and not r.post_ok, f"proc post-assert failure must be DETECTED: {r}"
-    assert not commit_effect(torr_proc, {182: 0}, applier).committed, "post-assert fail must HALT further commits"
+    writes = {}
+    procs_run.clear()
+    r = commit_effect(torr_proc, {182: 0}, applier)
+    assert not r.committed and r.reason.startswith("halted"), f"post-assert fail must HALT further commits: {r}"
+    assert not writes and not procs_run, f"a halted gate must not reach the write site: {writes}, {procs_run}"
     reset_halt()
+    r = commit_effect(torr_proc, {182: 0}, applier)
+    assert r.committed, f"after reset_halt the same commit must go through, or the refusal was not the halt: {r}"
 
     print("commit_effect mechanism OK (inert default, single write site, composite data+proc, post-assert/halt)")
     print("atom_gate self-test OK")
