@@ -162,6 +162,37 @@ reads the post-state, so the post-assert has no shipped customer. The hostile ru
 variable writes and procedures, not map-variable, local-variable or skill effects. And a graph file
 of the wrong shape still raised, which `knowledge/graph.py` now degrades like a missing one.
 
+### Second blind catalogue: 12 of 20
+
+Report: [`reports/seeded-bugs-2026-09-11-blind2.md`](reports/seeded-bugs-2026-09-11-blind2.md),
+measured on git `236ad2f`. Its author saw the code, the data and the documentation as they are after
+the fixes, and never the tests. The split below was fixed in the catalogue's commit message, before
+the run.
+
+| Second catalogue | Planted | Caught |
+|---|---|---|
+| repeats of a class the first catalogue already had | 10 | 9 |
+| new classes | 10 | 3 |
+| all | 20 | 12 |
+
+Five of 20 became 12 of 20, and the shape of that gain is the finding: the classes the first
+catalogue named are held 9 of 10, the classes nobody had planted before only 3 of 10. Tests close
+the ground they were written for.
+
+| Missed | Why nothing failed |
+|---|---|
+| B03: a guard clause the evaluator cannot parse is stepped over instead of refusing the commit | every guard in the tests and in the hostile table is one the evaluator understands; none is malformed |
+| B08: the ledger's mutex pass is dropped, so a fact no longer clears its siblings | the ledger tests drop undeclared writes; none writes a predicate whose siblings must be cleared |
+| B09: an empty source and region make every character perceive every object fact | nothing reads a fact back through the perception filter |
+| B12: a registered quest is reported to the narrator as a closed one | the result-fact test pins the mercy mapping; the quest-state mapping has none |
+| B13: the make-leave short-circuit is deleted from the intent classifier | the classifier tests pin the negation test and the job-seeking veto; this is a third guard nobody pinned |
+| B15: the runtime belt sanitises the canon dialect speakers too | `dialect_guard.py` has no test, and the data manifest pins the allowlist, not the code that reads it |
+| B16: graph name resolution falls back to any node sharing a prefix | the graph tests pin degradation on a broken file; nothing pins how a name resolves |
+| B20: a missing atom becomes an empty stand-in instead of aborting the adversarial run | the run's verdict is tested; the lookup that must abort it when an atom is missing is not |
+
+Seven of the eight sit in a module or a branch the new tests did not reach: the same lesson as the
+first round, one layer further in. This catalogue is training data from here on.
+
 ## What these numbers are not
 
 - They measure the deterministic gates only, not the review layer.

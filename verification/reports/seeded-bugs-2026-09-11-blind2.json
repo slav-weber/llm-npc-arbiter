@@ -1,0 +1,1249 @@
+{
+  "meta": {
+    "date": "2026-09-11T23:10:04Z",
+    "label": "blind2",
+    "git_head": "236ad2f",
+    "uncommitted_changes": false,
+    "tree_sha256": "fe04149bc730148b2a612415ce2b52e12d8054efa25a46814e7ed8d3c920efd1",
+    "files": 78,
+    "catalogue": "verification/seeded_bugs/catalogue_blind2.py",
+    "catalogue_sha256": "de368d85b31a39be7c88241ff09297a3050e6789c177b678faa4c65126bc0c83",
+    "python": "3.12.13",
+    "platform": "Windows",
+    "gates": [
+      "unit-tests",
+      "test-ratchet",
+      "lint",
+      "hostile-run",
+      "atom-gate-selftest",
+      "milestone-selftest",
+      "graph-current",
+      "data-manifest"
+    ]
+  },
+  "baseline": {
+    "unit-tests": {
+      "code": 0,
+      "seconds": 0.39
+    },
+    "test-ratchet": {
+      "code": 0,
+      "seconds": 0.3
+    },
+    "lint": {
+      "code": 0,
+      "seconds": 0.11
+    },
+    "hostile-run": {
+      "code": 0,
+      "seconds": 0.11
+    },
+    "atom-gate-selftest": {
+      "code": 0,
+      "seconds": 0.09
+    },
+    "milestone-selftest": {
+      "code": 0,
+      "seconds": 0.08
+    },
+    "graph-current": {
+      "code": 0,
+      "seconds": 0.19
+    },
+    "data-manifest": {
+      "code": 0,
+      "seconds": 0.16
+    }
+  },
+  "canary": {
+    "id": "B00",
+    "caught_by": [
+      "unit-tests",
+      "test-ratchet",
+      "hostile-run",
+      "atom-gate-selftest",
+      "milestone-selftest"
+    ]
+  },
+  "summary": {
+    "planted": 20,
+    "caught": 12,
+    "missed": [
+      "B03",
+      "B08",
+      "B09",
+      "B12",
+      "B13",
+      "B15",
+      "B16",
+      "B20"
+    ],
+    "by_area": {
+      "gate": {
+        "planted": 3,
+        "caught": 2
+      },
+      "loader": {
+        "planted": 2,
+        "caught": 2
+      },
+      "invariants": {
+        "planted": 2,
+        "caught": 2
+      },
+      "ledger": {
+        "planted": 2,
+        "caught": 0
+      },
+      "dice": {
+        "planted": 1,
+        "caught": 1
+      },
+      "schemas": {
+        "planted": 1,
+        "caught": 1
+      },
+      "result facts": {
+        "planted": 1,
+        "caught": 0
+      },
+      "arbitration": {
+        "planted": 1,
+        "caught": 0
+      },
+      "milestones": {
+        "planted": 1,
+        "caught": 1
+      },
+      "dialect": {
+        "planted": 1,
+        "caught": 0
+      },
+      "knowledge": {
+        "planted": 1,
+        "caught": 0
+      },
+      "quests": {
+        "planted": 1,
+        "caught": 1
+      },
+      "registry": {
+        "planted": 2,
+        "caught": 2
+      },
+      "adversarial run": {
+        "planted": 1,
+        "caught": 0
+      }
+    },
+    "caught_by_gate": {
+      "unit-tests": 7,
+      "hostile-run": 4,
+      "atom-gate-selftest": 2,
+      "milestone-selftest": 1,
+      "data-manifest": 3
+    },
+    "only_gate": {
+      "unit-tests": 3,
+      "atom-gate-selftest": 1,
+      "milestone-selftest": 1,
+      "data-manifest": 3
+    }
+  },
+  "bugs": [
+    {
+      "id": "B01",
+      "area": "gate",
+      "title": "An unresolved invariant name is skipped instead of refusing the commit",
+      "story": "Chasing a report that a freshly onboarded atom never fired because its predicate module had not been imported before the turn, an agent turns the unresolved-name refusal into an audit line and a skip, so registration order stops breaking live quests. An invariant nobody registered now evaluates to nothing rather than blocking the write: a typo in a designer's invariant list, or a name a model appended to it, leaves the atom committing on its guard alone.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run",
+        "atom-gate-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.38,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_an_unknown_invariant_is_fail_closed (test_arbiter.Chokepoint)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.11,
+          "evidence": [
+            "unregistered invariant                   committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 1,
+          "seconds": 0.08,
+          "evidence": [
+            "AssertionError: unknown predicate must block: CommitResult(committed=True, reason='committed', mut=[(182, 1)], proc=None, post_ok=True)"
+          ]
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B02",
+      "area": "gate",
+      "title": "A missing party-size scalar now reads as 'the player came alone'",
+      "story": "An agent fixing a report that the Navarro sentry refused a player who really had sent his companions away, because that engine build never emitted the escort scalar, makes the missing value default to zero so the gate stops punishing absent data. The vanilla rule that recruits report for duty alone then holds only when the engine happens to report the party, and every turn without that field passes the gate with a retinue in tow.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_a_missing_party_size_fails_closed (test_arbiter.Chokepoint)",
+            "test_a_missing_party_size_fails_closed (test_arbiter.Chokepoint)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.11,
+          "evidence": [
+            "pass the gate with no party size         committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B03",
+      "area": "gate",
+      "title": "A guard clause the evaluator cannot parse is stepped over, not refused",
+      "story": "Preparing the guard grammar for terms the engine evaluates itself (the registry's post lists already carry clauses such as cur_map==14), an agent makes the evaluator tolerant: a clause it does not recognise is skipped instead of failing the guard. A designer's typo, or a clause written with OR, is then silently dropped from the guard it was meant to impose, and a guard built only of such clauses holds against every state the atom is ever offered.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.34,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B04",
+      "area": "loader",
+      "title": "The skills-only exemption becomes a denylist again and forgets stamp_time",
+      "story": "Simplifying the loader, an agent replaces the effect-key allowlist with a shorter, more readable 'no data_delta, no proc, no map or local var' test that looks equivalent. It is not: a once_per_npc atom whose effect also carries stamp_time, a durable gvar write, or any effect kind added later, is now exempt from the mandatory durable guard and loads as an active atom with nothing but memory and intent between a model turn and engine state.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B05",
+      "area": "loader",
+      "title": "The design-source check accepts a blank or non-list citation",
+      "story": "Tidying the fail-closed schema checks, an agent collapses the design_source test to a plain truthiness check, reading the list-and-non-blank version as a verbose way of saying the same thing. A citation of [\"\"], or a bare placeholder string, now counts as design truth, so the one field that forces a human to name where a guard's intent comes from can be satisfied with whitespace and the atom loads as cited and active.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "atom-gate-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.38,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "AssertionError: blank-only source must reject"
+          ]
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B06",
+      "area": "invariants",
+      "title": "reward_iff_started lets the success flag through on a started quest",
+      "story": "An agent reconciling a predicate with its own name rewrites 'the atom must never touch the success flag' into 'the success flag only once the quest has started'. The escort's go-now atom legitimately fires at stage 1, so a turn that appends set gvar 85 = 1 to its effect now passes every check, and the quest's reward is written by a model turn instead of being earned at the end of the escort.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.39,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_the_reward_flag_is_refused_at_every_stage_the_escort_fires_from (test_arbiter.Chokepoint)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "grant the reward on a started quest      committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B07",
+      "area": "invariants",
+      "title": "The teaching range is widened to the engine's 300-point skill cap",
+      "story": "Aligning the numbers that describe train_skill, an agent takes the cap quoted in the surrounding docstrings — the engine halves a tagged skill and stops at 300 — as the teaching range and raises the per-lesson bound from 20 to 300. skills_only then accepts a lesson of any size, so a teacher atom whose amount was inflated to Unarmed:200 is still, by the invariant's own measure, exactly a skill raise.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.11,
+          "evidence": [
+            "teach two hundred points                 committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.14,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B08",
+      "area": "ledger",
+      "title": "The mutex pass is dropped from set_fact as dead code",
+      "story": "The base state registry declares no mutex groups and the helper ignores two of the arguments it is given, so an agent pruning dead code removes the call from set_fact. A content mod that declares predicates mutually exclusive loses the rule that a new fact clears its siblings, and a subject can hold two contradictory facts at once — repaired and broken, allied and hostile — both of which are injected into the prompt.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.14,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B09",
+      "area": "ledger",
+      "title": "Empty source and region make every character perceive every object fact",
+      "story": "An agent flattening the perception test drops the 'key and' / 'reg and' guards as redundant belt-and-braces in front of the comparisons that follow. Both sides default to the empty string — a fact written without a source or a region, an NPC queried without either — so the empty strings compare equal and characters start volunteering durable state about objects in places they have never been.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.41,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.14,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B10",
+      "area": "dice",
+      "title": "The chance is clamped before the difficulty penalty instead of after",
+      "story": "Skills in this game run well past 100, so an agent normalising the character's ability first moves the clamp onto the base chance and subtracts the difficulty penalty afterwards. The 5..95 window that guarantees room for a miracle and a fumble is gone at the bottom: an ordinary skill against a hard check lands on a negative chance, where every roll is not merely a failure but a critical one.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.38,
+          "evidence": [
+            "test_the_chance_stays_inside_the_clamp (test_arbiter.Dice)",
+            "test_the_chance_stays_inside_the_clamp (test_arbiter.Dice)",
+            "test_the_chance_stays_inside_the_clamp (test_arbiter.Dice)",
+            "test_the_chance_stays_inside_the_clamp (test_arbiter.Dice)",
+            "test_the_chance_stays_inside_the_clamp (test_arbiter.Dice)",
+            "test_the_chance_stays_inside_the_clamp (test_arbiter.Dice)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B11",
+      "area": "schemas",
+      "title": "The free-action `kind` field loses its closed set of intents",
+      "story": "After turns were thrown away wholesale because the model answered with an intent outside the five and strict validation rejected the call, an agent relaxes kind to a plain string and leaves normalisation to the caller. The intent channel stops being a closed vocabulary: the model can now name a kind nobody designed, and the routing that switches on it meets a value with no defined meaning.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_the_intent_set_is_closed (test_schemas.Schemas)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B12",
+      "area": "result facts",
+      "title": "A registered quest is reported to the narrator as a closed quest",
+      "story": "Two adjacent arms of the fact renderer build almost the same sentence about the quest journal, so an agent deduplicating the branch merges them into one. The narrating model is then told a quest was closed on the very turn it was merely accepted, which is the completion claim every quest record forbids the brain from making before the engine flips the done variable.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.38,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B13",
+      "area": "arbitration",
+      "title": "The make-leave short-circuit is deleted from the atom intent classifier",
+      "story": "The module says the primary make-leave route is the role-annotated option index, so an agent retiring the regex floor deletes the short-circuit that made a send-them-away line neither an accept nor a go. A player telling Torr to clear off in a sentence that happens to carry a go-word («сваливай, пошли уже») classifies as go_now again and fires the pasture teleport — the spurious re-teleport the comment right above it records.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B14",
+      "area": "milestones",
+      "title": "The pre-catastrophe baseline no longer overrides the contaminated facts",
+      "story": "An agent fixing what reads like a precedence mistake — a generic side-car overwriting a character's own curated fields — puts the NPC's facts last in the merge. Every field the baseline exists to replace wins again, so on first contact, long before the raid happens, the shaman speaks of Navarro, the burned village and his own dying: exactly the bug the milestone gate was built to stop.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "milestone-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "AssertionError: baseline must be clean: {'health': 'тяжело ранен/при смерти после нападения; обожжён', 'want': 'чтобы Избранный нашёл ГЭКК и спас деревню от засухи; чтобы его огород пропололи от чернодушника', 'fear': 'что чёрные духи уничтожат народ', 'knows_not': 'где именно находится ГЭКК; современный мир, города и технологии за пределами племени; что творится в далёких землях чужаков', 'life_events': '0:родился в племени; стал шаманом племени; много лет служил духовным наставником; настоящее время: деревню мучает засуха и голод, он шлёт Избранного на поиски ГЭККа', 'knows': 'Наварро — место, куда улетели похитители; ГЭКК спасёт деревню', 'backstory': 'Хакунин — старый шаман небольшого племени, из которого происходит Избранный. Много десятилетий он был духовным вождём, толкователем снов и хранителем племенных традиций. Когда земля перестала родить и запасы еды иссякли, именно Хакунин убедил старейшин отправить Избранного на поиски священного ГЭККа — единственной надежды деревни перед засухой.'}"
+          ]
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B15",
+      "area": "dialect",
+      "title": "The runtime card belt sanitises the canon dialect speakers too",
+      "story": "Reasoning that a dossier card is the distiller's prose about a character and never the character's own lines, an agent removes the canon exemption from the runtime belt so stale cards on players' machines are cleaned for everyone. The cards of the characters whose broken speech is canon lose every sentence that describes it, and the model voices Torr and his like as ordinary, articulate people.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B16",
+      "area": "knowledge",
+      "title": "Runtime name resolution falls back to any node sharing a prefix",
+      "story": "Mirroring the build's prefix matching, an agent makes the runtime resolver accept an inflected or shortened entity name by falling back to the first graph key that starts with it. A name that is a prefix of a longer one — and an empty name, which is a prefix of everything — then borrows a stranger's neighbourhood, so the lines injected into a character's prompt as related facts belong to an entity the retrieval never matched.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.14,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "B17",
+      "area": "quests",
+      "title": "The dog's strict alias list is completed with the second name's forms",
+      "story": "The deliverable record says Smoke answers to both «Смок» and «Дым», so an agent completing the strict list adds the second name's inflections for symmetry. That list is the match set for a memory deletion that runs outside the quest's owning character, and «Дым» is also the ordinary Russian word for smoke, so unrelated true memories — a campfire that smells of smoke — are erased for good from every character that holds them.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.14,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: quests/arroyo_nagor_dog.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "B18",
+      "area": "registry",
+      "title": "The Rescue Torr guard is 'normalised' to read Torr as not missing",
+      "story": "Sweeping the registry for inconsistencies, an agent finds one guard reading the Torr-missing flag as gvar(71)==1 where every neighbouring atom reads gvar(71)==0, and makes it match its siblings. The atom now registers the rescue quest in the journal only while Torr is safely at home, and refuses it in the one state the designer wrote the quest for, so the mother's errand can never be accepted when her son is actually gone.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.16,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: arbiter/atom_registry.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "B19",
+      "area": "registry",
+      "title": "critter_state.status is widened from an enumeration to free text",
+      "story": "After watching legitimate-looking deltas dropped because the model wrote statuses the registry does not declare, an agent changes the predicate's type from enum to string so content stops being lost. The validated slot stops validating: any status a model invents for any creature is stored with provenance, injected into the prompts of everyone who would perceive it, and spread by the rumour seeder as durable truth about the world.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.17,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: arbiter/registry/fo2.state.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "B20",
+      "area": "adversarial run",
+      "title": "A missing atom becomes an empty stand-in instead of aborting the run",
+      "story": "An agent makes the hostile run survive registry edits: a scenario whose atom is no longer in the live whitelist gets an empty stand-in, which the gate refuses as inert, rather than the whole run dying on a KeyError. An atom the loader has quietly started rejecting then leaves its attacks 'refused' for the wrong reason, and the table and the exit code report a clean run over checks that were never exercised at all.",
+      "canary": false,
+      "caught": false,
+      "caught_by": [],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.38,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.12,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    }
+  ]
+}

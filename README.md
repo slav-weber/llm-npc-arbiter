@@ -90,8 +90,12 @@ and the documentation, never the tests.
 - The most instructive miss: the self-test meant to prove that a failed post-assert halts the gate
   passed for the wrong reason, so removing the halt changed nothing it could see.
 - After tests for these groups and a manifest that pins every designer data file by its digest, the
-  same catalogue scores 20 of 20. That shows the fixes work; the next honest number needs a second
-  blind catalogue.
+  same catalogue scores 20 of 20. That shows the fixes work, not that the gates generalise.
+- **A second catalogue, written blind after those fixes: 12 of 20** — 9 of 10 on classes the first
+  catalogue named, 3 of 10 on classes nobody had planted before. The misses sit in modules and
+  branches the new tests did not reach: the guard evaluator's error path, the ledger's mutex pass,
+  perception scope, the quest-state fact, a third classifier guard, the dialect belt, graph name
+  resolution, and the adversarial run's own lookup.
 
 Report: `verification/reports/`; every miss with the reason it was missed: `verification/README.md`.
 
