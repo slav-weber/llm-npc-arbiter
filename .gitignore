@@ -7,3 +7,6 @@ __pycache__/
 
 # Vector index: large, derived, and rebuilt by knowledge/build_index.py.
 knowledge/index/
+
+# Personal Claude Code settings stay local.
+.claude/settings.local.json

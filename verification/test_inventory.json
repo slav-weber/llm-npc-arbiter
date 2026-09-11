@@ -1,0 +1,20 @@
+{
+  "tests": [
+    "test_arbiter.AdversarialRun.test_no_hostile_turn_writes_anything",
+    "test_arbiter.AdversarialRun.test_the_run_includes_a_control_that_commits",
+    "test_arbiter.Chokepoint.test_a_refused_turn_never_calls_the_applier",
+    "test_arbiter.Chokepoint.test_an_inactive_atom_is_inert",
+    "test_arbiter.Chokepoint.test_an_unknown_invariant_is_fail_closed",
+    "test_arbiter.Chokepoint.test_removing_an_invariant_lets_the_attack_through",
+    "test_arbiter.Chokepoint.test_the_honest_turn_commits",
+    "test_arbiter.Dice.test_the_chance_stays_inside_the_clamp",
+    "test_arbiter.Dice.test_the_outcome_is_one_of_the_four_grades",
+    "test_arbiter.Ledger.test_a_value_outside_the_enumeration_is_dropped",
+    "test_arbiter.Ledger.test_an_undeclared_domain_is_dropped",
+    "test_arbiter.Ledger.test_validate_reports_the_reason",
+    "test_arbiter.Registry.test_every_declared_invariant_resolves",
+    "test_arbiter.Registry.test_every_shipped_atom_loads",
+    "test_arbiter.Registry.test_no_atom_declares_an_empty_invariant_list"
+  ],
+  "allowed_skips": {}
+}

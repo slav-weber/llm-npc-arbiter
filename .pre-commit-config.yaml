@@ -1,0 +1,9 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.7        # the ruff pinned in uv.lock; the rule set lives in pyproject.toml
+    hooks:
+      - id: ruff-check
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1        # staged changes only; CI scans the full history (.github/workflows/verify.yml)
+    hooks:
+      - id: gitleaks

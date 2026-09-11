@@ -58,6 +58,23 @@ value outside the enumeration            dropped     faction_stance:ncr:stance=w
 The one committed line is deliberate. A run where everything is blocked proves only that the system
 is broken; the control turn is the honest agreement that must still work.
 
+## Verification
+
+[![verify](https://github.com/slav-weber/llm-npc-arbiter/actions/workflows/verify.yml/badge.svg)](https://github.com/slav-weber/llm-npc-arbiter/actions/workflows/verify.yml)
+
+Every push runs the same gates in CI: the test suite and a ratchet that stops tests from being
+deleted or skipped, ruff, the hostile scenario table, the self-tests of the atom gate and the
+milestone gate, a check that the committed knowledge graph is exactly what the corpus builds, a
+secret scan over the full git history and an audit of the locked development tools
+(`.github/workflows/verify.yml`, `verification/gates.py`). Coding agents working here follow
+`AGENTS.md`: the invariants of the layer, what an agent must not do, and what "done" means. In
+Claude Code, `/review` adds an adversarial reviewer and a skeptic, and a Stop hook refuses "done"
+while a gate is red.
+
+```bash
+uv run python -m verification.gates
+```
+
 ## What is here
 
 | Part | What it does | Files |
@@ -120,8 +137,8 @@ draws that alias and shows the original name in the detail panel.
 
 Designed, specified and accepted by Slava Weber; the implementation was typed by coding agents
 (Claude Code) from written specifications, acceptance criteria and adversarial review notes, then
-read and accepted line by line. In the private repository 197 of 205 commits carry the agent's
-`Co-Authored-By` trailer.
+accepted against the tests, the adversarial run and the gates described under Verification. In the
+private repository 197 of 205 commits carry the agent's `Co-Authored-By` trailer.
 
 This public extract was assembled in September 2026: the arbiter modules, the atom registry, the
 state registry, the quest definitions and the knowledge layer were carried over unchanged in
