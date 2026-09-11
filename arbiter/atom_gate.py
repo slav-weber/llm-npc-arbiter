@@ -413,7 +413,8 @@ if __name__ == "__main__":
     print("schema hardening OK (scope.script + intent + offer_brief + its source required, fail-closed)")
 
     # --- commit_effect mechanism: guard + invariants + single write site + inertness ---
-    reset_predicates(); reset_halt()
+    reset_predicates()
+    reset_halt()
     writes = {}
     procs_run = []
     def applier(muts, proc):                 # the injected single side-effect site (fake engine)
@@ -447,7 +448,10 @@ if __name__ == "__main__":
     assert not commit_effect(torr, {182: 1}, applier).committed, "guard false (Q!=0) -> no-op"
 
     # (5) COMPOSITE proc-atom (the Torr shape): data_delta + general proc -> sets gvar AND emits exec_proc
-    writes = {}; procs_run.clear(); reset_predicates(); reset_halt()
+    writes = {}
+    procs_run.clear()
+    reset_predicates()
+    reset_halt()
     register_invariant("monotonic_Q", lambda c: True)
     torr_proc = {**base, "atom_id": "torr_proc", "active": True, "invariants": ["monotonic_Q"],
                  "guard": {"durable": "gvar(182)==0"},
@@ -459,7 +463,10 @@ if __name__ == "__main__":
         f"composite must set gvar AND emit proc for the engine: {r}, writes={writes}, procs={procs_run}"
 
     # (6) proc-atom post-assert FAILS -> committed but flagged + HALTS further commits (detect-not-prevent)
-    writes = {}; procs_run.clear(); reset_predicates(); reset_halt()
+    writes = {}
+    procs_run.clear()
+    reset_predicates()
+    reset_halt()
     register_invariant("after_is_none", lambda c: c["after"] is None)   # true pre (after=None), false post
     bad = {**torr_proc, "invariants": ["after_is_none"]}
     r = commit_effect(bad, {182: 0}, applier)

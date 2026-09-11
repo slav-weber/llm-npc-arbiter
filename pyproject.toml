@@ -8,9 +8,27 @@ dependencies = []
 # The arbiter and the knowledge layer are standard library only, by design: the runtime ships
 # inside a game installation, where a dependency tree is a liability. Tests need nothing extra.
 
+# Development only: the lint gate (verification/gates.py) and pre-commit use ruff. Nothing at runtime
+# imports it.
+[dependency-groups]
+dev = [
+    "ruff>=0.16",
+]
+
+# Not an installable package: a repository of modules and data (arbiter/, knowledge/, adversarial/).
+[tool.uv]
+package = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 110
 target-version = "py311"
+
+# The rule set CI and pre-commit share: pyflakes (F) and pycodestyle errors and warnings (E, W);
+# long lines stay a style matter. Explicit on purpose: recent ruff releases enable more rule families
+# by default, and an upgrade must not widen the gate silently.
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]

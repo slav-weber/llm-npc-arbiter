@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 
 from arbiter import atom_gate, dice, invariants, ledger
 
