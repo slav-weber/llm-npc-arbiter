@@ -1,0 +1,1301 @@
+{
+  "meta": {
+    "date": "2026-09-11T20:17:36Z",
+    "label": "after-fixes",
+    "git_head": "fa599c2",
+    "uncommitted_changes": false,
+    "tree_sha256": "490f84db7f30959818f81f8715aed2abae1d1f01ca91063dc31767ad26468b3b",
+    "files": 77,
+    "catalogue": "verification/seeded_bugs/catalogue.py",
+    "catalogue_sha256": "1b86d72879493bb9ba5ea84bf69a72a02cb070cd2eb33ba9f52cc9323da73994",
+    "python": "3.12.13",
+    "platform": "Windows",
+    "gates": [
+      "unit-tests",
+      "test-ratchet",
+      "lint",
+      "hostile-run",
+      "atom-gate-selftest",
+      "milestone-selftest",
+      "graph-current",
+      "data-manifest"
+    ]
+  },
+  "baseline": {
+    "unit-tests": {
+      "code": 0,
+      "seconds": 0.36
+    },
+    "test-ratchet": {
+      "code": 0,
+      "seconds": 0.3
+    },
+    "lint": {
+      "code": 0,
+      "seconds": 0.12
+    },
+    "hostile-run": {
+      "code": 0,
+      "seconds": 0.11
+    },
+    "atom-gate-selftest": {
+      "code": 0,
+      "seconds": 0.09
+    },
+    "milestone-selftest": {
+      "code": 0,
+      "seconds": 0.08
+    },
+    "graph-current": {
+      "code": 0,
+      "seconds": 0.19
+    },
+    "data-manifest": {
+      "code": 0,
+      "seconds": 0.16
+    }
+  },
+  "canary": {
+    "id": "A00",
+    "caught_by": [
+      "unit-tests",
+      "test-ratchet",
+      "hostile-run",
+      "atom-gate-selftest",
+      "milestone-selftest"
+    ]
+  },
+  "summary": {
+    "planted": 20,
+    "caught": 20,
+    "missed": [],
+    "by_area": {
+      "gate": {
+        "planted": 3,
+        "caught": 3
+      },
+      "loader": {
+        "planted": 2,
+        "caught": 2
+      },
+      "invariants": {
+        "planted": 2,
+        "caught": 2
+      },
+      "ledger": {
+        "planted": 1,
+        "caught": 1
+      },
+      "dice": {
+        "planted": 1,
+        "caught": 1
+      },
+      "schemas": {
+        "planted": 1,
+        "caught": 1
+      },
+      "result facts": {
+        "planted": 1,
+        "caught": 1
+      },
+      "arbitration": {
+        "planted": 2,
+        "caught": 2
+      },
+      "milestones": {
+        "planted": 1,
+        "caught": 1
+      },
+      "dialect": {
+        "planted": 1,
+        "caught": 1
+      },
+      "knowledge": {
+        "planted": 1,
+        "caught": 1
+      },
+      "quests": {
+        "planted": 1,
+        "caught": 1
+      },
+      "registry": {
+        "planted": 2,
+        "caught": 2
+      },
+      "adversarial run": {
+        "planted": 1,
+        "caught": 1
+      }
+    },
+    "caught_by_gate": {
+      "unit-tests": 14,
+      "hostile-run": 5,
+      "atom-gate-selftest": 3,
+      "milestone-selftest": 1,
+      "data-manifest": 4
+    },
+    "only_gate": {
+      "unit-tests": 8,
+      "atom-gate-selftest": 1,
+      "milestone-selftest": 1,
+      "data-manifest": 4
+    }
+  },
+  "bugs": [
+    {
+      "id": "A01",
+      "area": "gate",
+      "title": "An unregistered invariant name is skipped instead of refusing the commit",
+      "story": "After a renamed predicate made a whole quest line unfireable, an agent downgrades an unresolved invariant from a refusal to a loud escalation and moves on to the next name. An atom that declares a misspelled or never-registered invariant (the model's 'always_allow') now commits with that safety rule silently evaluating to nothing.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run",
+        "atom-gate-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_an_unknown_invariant_is_fail_closed (test_arbiter.Chokepoint)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.11,
+          "evidence": [
+            "unregistered invariant                   committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 1,
+          "seconds": 0.08,
+          "evidence": [
+            "AssertionError: unknown predicate must block: CommitResult(committed=True, reason='committed', mut=[(182, 1)], proc=None, post_ok=True)"
+          ]
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A02",
+      "area": "gate",
+      "title": "A failed post-assert on a procedure atom no longer halts further commits",
+      "story": "After one flaky post-assert froze every quest atom for the rest of a play session, an agent turns the halt into an escalation so a single bad procedure cannot take the whole layer down. A procedure that leaves the world violating the atom's invariants is now only reported, and the next commit goes ahead on a state nobody has checked.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "atom-gate-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_a_failed_post_assert_halts_the_next_valid_commit (test_arbiter.PostAssert)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "AssertionError: post-assert fail must HALT further commits: CommitResult(committed=True, reason='committed', mut=[(182, 1)], proc={'script': 'kctorr', 'proc': 'Node020'}, post_ok=True)"
+          ]
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A03",
+      "area": "gate",
+      "title": "A missing party size is read as 'alone', so party_size(0)==0 guards pass",
+      "story": "An agent simplifies the party-size normalisation to int(party_size or 0), the same default every other missing variable gets. When the engine does not report the escort size, the Navarro sentry's 'recruits arrive alone' clause now holds, and a player with a retinue walks through the gate: the guard fails open where the docstring demands it fail closed.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_a_missing_party_size_fails_closed (test_arbiter.Chokepoint)",
+            "test_a_missing_party_size_fails_closed (test_arbiter.Chokepoint)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "pass the gate with no party size         committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A04",
+      "area": "loader",
+      "title": "The guard-free teacher exemption accepts any once_per_npc atom with skills",
+      "story": "A designer added a 'post' list to a teacher row and the loader rejected it for a missing durable guard, so an agent relaxes the exact-set test to a membership test. Any once_per_npc atom that carries skills now loads without a durable guard even when it also writes a quest variable, a procedure or a timestamp: the allowlist from the adversarial review is gone.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)",
+            "test_the_teacher_exemption_is_exact (test_arbiter.Registry)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A05",
+      "area": "loader",
+      "title": "A design source made of blank strings satisfies the fail-closed loader",
+      "story": "Tidying the loader's repeated isinstance/any(strip) idiom, an agent reduces the design-source check to a truthiness test. A list of empty strings or a bare placeholder string now passes, so an atom whose design intent cites nothing is loaded silently instead of being escalated for a human to clear.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "atom-gate-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "AssertionError: blank-only source must reject"
+          ]
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A06",
+      "area": "invariants",
+      "title": "reward_iff_started lets an atom write the success flag once the quest started",
+      "story": "An agent makes the predicate match its name, 'reward if and only if started', by allowing the success flag once the quest stage is at least 1. The designer's rule was that the atom never touches the reward: a go-now turn at stage 1 whose effect carries 'set gvar 85 = 1' now passes every invariant of the escort atom and grants the reward.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_the_reward_flag_is_refused_at_every_stage_the_escort_fires_from (test_arbiter.Chokepoint)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "grant the reward on a started quest      committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A07",
+      "area": "invariants",
+      "title": "skills_only accepts lessons of up to 300 points instead of 1..20",
+      "story": "The engine already halves tagged skills and caps them at 300, so an agent aligns the teaching range with the engine cap instead of keeping a second, seemingly arbitrary limit. A model that inflates a lesson to 'Unarmed:200' now passes skills_only, and one teacher turn can raise a skill by hundreds of points.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.11,
+          "evidence": [
+            "teach two hundred points                 committed   committed  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A08",
+      "area": "ledger",
+      "title": "An undeclared predicate validates as a free-text slot",
+      "story": "A mod declared a free-text predicate as an empty spec (the type defaults to string) and every write to it was refused, because an empty dict is falsy. The agent tests 'is None' and gives the lookup an empty-dict default for symmetry, which turns every undeclared predicate into a string slot: 'faction_stance:ncr:owns_everything=true' is stored and injected into prompts.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests",
+        "hostile-run"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_no_hostile_turn_writes_anything (test_arbiter.AdversarialRun)",
+            "test_a_value_outside_the_enumeration_is_dropped (test_arbiter.Ledger)",
+            "test_validate_reports_the_reason (test_arbiter.Ledger)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.31,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "undeclared predicate                     stored      faction_stance:ncr:owns_everything=true  <-- ILLEGAL",
+            "value outside the enumeration            stored      faction_stance:ncr:stance=worships_the_player  <-- ILLEGAL"
+          ]
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A09",
+      "area": "dice",
+      "title": "Difficulties below 1 now subtract a negative penalty, a bonus the model picks",
+      "story": "The model is told to fold easing modifiers into difficulty, and the floor swallowed every bonus below 1, so an agent removes the max(0, ...). The schema only says integer: a model that answers difficulty -9 lifts a character with no skill from 5% to 95%, so the chance is chosen by the model rather than computed from the character's statistics.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_a_difficulty_below_one_gives_no_bonus (test_arbiter.Dice)",
+            "test_a_difficulty_below_one_gives_no_bonus (test_arbiter.Dice)",
+            "test_a_difficulty_below_one_gives_no_bonus (test_arbiter.Dice)",
+            "test_a_difficulty_below_one_gives_no_bonus (test_arbiter.Dice)",
+            "test_a_difficulty_below_one_gives_no_bonus (test_arbiter.Dice)",
+            "test_a_difficulty_below_one_gives_no_bonus (test_arbiter.Dice)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A10",
+      "area": "schemas",
+      "title": "The narrating call gains a state_set field, a durable-write channel",
+      "story": "Ledger deltas declared by the decide leg sometimes contradicted the narration, so an agent gives the narrate leg its own state_set, to be written by the call that has already seen the result facts. The narrating model, which may only describe what the engine made true, can now lock durable world state from its own prose.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_the_narrating_calls_offer_no_write_channel (test_schemas.Schemas)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.14,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A11",
+      "area": "result facts",
+      "title": "A mercy fact renders as 'the enemy agreed' unless it says refused",
+      "story": "An agent aligns mercy with the bare flags such as dead or ko, where the key's presence means the thing happened, and flips the test to check for an explicit refusal. A bare 'mercy' or any value outside the pair now tells the narrator that the enemy agreed to spare the player, a fact the engine never reported.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.38,
+          "evidence": [
+            "test_mercy_is_rendered_as_granted_only_when_the_engine_reports_a_yield (test_result_facts.ResultFacts)",
+            "test_mercy_is_rendered_as_granted_only_when_the_engine_reports_a_yield (test_result_facts.ResultFacts)",
+            "test_mercy_is_rendered_as_granted_only_when_the_engine_reports_a_yield (test_result_facts.ResultFacts)",
+            "test_mercy_is_rendered_as_granted_only_when_the_engine_reports_a_yield (test_result_facts.ResultFacts)",
+            "test_mercy_is_rendered_as_granted_only_when_the_engine_reports_a_yield (test_result_facts.ResultFacts)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A12",
+      "area": "arbitration",
+      "title": "A negated go-word classifies as go_now and can fire a teleport",
+      "story": "Consolidating negation handling, an agent drops the ad-hoc 'no/not' test on the go branch, reasoning that make-leave lines are filtered just above and refusals are the refusal regex's job. A refusal that happens to contain a go-word, 'I am not going anywhere', now classifies as go_now, and on the atom_id bypass path it fires the terminal teleport to the pasture.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.38,
+          "evidence": [
+            "test_a_negated_go_word_is_not_go_now (test_atom_arbitration.Arbitration)",
+            "test_a_negated_go_word_is_not_go_now (test_atom_arbitration.Arbitration)",
+            "test_a_negated_go_word_is_not_go_now (test_atom_arbitration.Arbitration)",
+            "test_a_negated_go_word_is_not_go_now (test_atom_arbitration.Arbitration)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A13",
+      "area": "arbitration",
+      "title": "Acceptance is tested before the generic job-seeking veto",
+      "story": "While reordering the classifier so that the positive intents read first, an agent moves the acceptance test above the work-seeking veto. Job-seeking lines that contain an accept stem, such as 'ready for anything' or 'I will take any job', are accepted again, so a quest atom fires before the NPC has offered anything: the live 'looking for work' bug returns.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.38,
+          "evidence": [
+            "test_job_seeking_with_an_accept_stem_is_vetoed (test_atom_arbitration.Arbitration)",
+            "test_job_seeking_with_an_accept_stem_is_vetoed (test_atom_arbitration.Arbitration)",
+            "test_job_seeking_with_an_accept_stem_is_vetoed (test_atom_arbitration.Arbitration)",
+            "test_job_seeking_with_an_accept_stem_is_vetoed (test_atom_arbitration.Arbitration)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A14",
+      "area": "milestones",
+      "title": "The pre-milestone baseline no longer overrides the contaminated fields",
+      "story": "An agent treats the baseline as defaults that should only fill gaps, and swaps the merge so a field the character's own facts already carry is never overwritten. Every contaminated field is present in the original facts, so the baseline never wins: Hakunin talks about the raid, his wounds and Navarro on first contact, before the catastrophe has happened.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "milestone-selftest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.34,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 1,
+          "seconds": 0.09,
+          "evidence": [
+            "AssertionError: baseline must be clean: {'health': 'тяжело ранен/при смерти после нападения; обожжён', 'want': 'чтобы Избранный нашёл ГЭКК и спас деревню от засухи; чтобы его огород пропололи от чернодушника', 'fear': 'что чёрные духи уничтожат народ', 'knows_not': 'где именно находится ГЭКК; современный мир, города и технологии за пределами племени; что творится в далёких землях чужаков', 'life_events': '0:родился в племени; стал шаманом племени; много лет служил духовным наставником; настоящее время: деревню мучает засуха и голод, он шлёт Избранного на поиски ГЭККа', 'knows': 'Наварро — место, куда улетели похитители; ГЭКК спасёт деревню', 'backstory': 'Хакунин — старый шаман небольшого племени, из которого происходит Избранный. Много десятилетий он был духовным вождём, толкователем снов и хранителем племенных традиций. Когда земля перестала родить и запасы еды иссякли, именно Хакунин убедил старейшин отправить Избранного на поиски священного ГЭККа — единственной надежды деревни перед засухой.'}"
+          ]
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A15",
+      "area": "dialect",
+      "title": "Nancy's allowlist entry is parked, so her canon pidgin gets scrubbed",
+      "story": "Reading that Nancy's normal register is literate, an agent parks her allowlist entry with the side-car's underscore convention until someone re-checks the message file. The loader skips underscored keys, so her canon telegraphic pidgin with the servants is cut from her distillation input and sanitised out of her card: a canon dialect is 'corrected'.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.14,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: arbiter/dialect_canon.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "A16",
+      "area": "knowledge",
+      "title": "A corrupt graph file now raises from every retrieval instead of degrading",
+      "story": "A lint cleanup narrows the broad except in the graph loader to FileNotFoundError, since the comment only mentions a missing file. A truncated or half-written graph.json, as an interrupted rebuild leaves behind, now raises JSONDecodeError from every neighbour expansion, so the optional layer takes retrieval down with it.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_a_corrupt_or_half_written_graph_file_degrades_to_a_no_op (test_knowledge_graph.GraphDegradation)",
+            "test_a_corrupt_or_half_written_graph_file_degrades_to_a_no_op (test_knowledge_graph.GraphDegradation)",
+            "test_a_corrupt_or_half_written_graph_file_degrades_to_a_no_op (test_knowledge_graph.GraphDegradation)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.14,
+          "evidence": []
+        }
+      }
+    },
+    {
+      "id": "A17",
+      "area": "quests",
+      "title": "The betrayal value 198=4 of the still quest is relabelled as done",
+      "story": "An agent reconciles the still quest's stages with its completed threshold of 3: quests.txt closes the journal entry at any value of 3 or more, so it relabels 198=4 as done, the way the Pip-Boy shows it. When the player has sold the still to Sajag, the quest now reads as a success and Bob thanks the player for a refuel he sabotaged.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.17,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: quests/q198_klamath_still.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "A18",
+      "area": "registry",
+      "title": "The Rescue Torr atom now fires only when Torr is not missing",
+      "story": "Normalising the Klamath guards, an agent notices that every other atom reads gvar 71 as ==0 ('the NPC is not missing') and corrects this one to match. The rescue can now be accepted only while Torr is at home and never while he is missing: the journal registers 'Rescue Torr' for a son standing in the pasture, a write the designer never authorised.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.28,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.12,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.14,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: arbiter/atom_registry.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "A19",
+      "area": "registry",
+      "title": "critter_state.status becomes a free string, so any status is stored",
+      "story": "The model keeps reporting statuses such as 'wounded' or 'captured' that the enumeration drops, so an agent loosens the predicate to a string. Any value now validates: the model can record a character as burned, captured or immortal by writing it, the fact is injected into the prompt of everyone who perceives that character, and the rumour seeder spreads it.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "data-manifest"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 0,
+          "seconds": 0.36,
+          "evidence": []
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.19,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 1,
+          "seconds": 0.16,
+          "evidence": [
+            "!! the designer data differs from verification/data_manifest.json: changed: arbiter/registry/fo2.state.json. A deliberate data change records the new state with `uv run python -m verification.data_manifest --update` in the same commit, where a reviewer sees it."
+          ]
+        }
+      }
+    },
+    {
+      "id": "A20",
+      "area": "adversarial run",
+      "title": "The hostile run flags only unauthorised commits as illegal",
+      "story": "An agent reads 'illegal' as 'an unauthorised commit' and simplifies the expression. Two failure modes vanish from the report: a control turn that no longer commits, which is what a gate that refuses everything looks like, and a refused turn whose write site was still called. The run keeps printing 0 illegal while the gate is broken.",
+      "canary": false,
+      "caught": true,
+      "caught_by": [
+        "unit-tests"
+      ],
+      "gates": {
+        "unit-tests": {
+          "code": 1,
+          "seconds": 0.36,
+          "evidence": [
+            "test_a_control_that_no_longer_commits_is_illegal (test_arbiter.AdversarialRun)",
+            "test_a_refused_turn_that_reached_the_write_site_is_illegal (test_arbiter.AdversarialRun)",
+            "test_a_refused_turn_that_reached_the_write_site_is_illegal (test_arbiter.AdversarialRun)",
+            "test_a_refused_turn_that_reached_the_write_site_is_illegal (test_arbiter.AdversarialRun)",
+            "test_a_refused_turn_that_reached_the_write_site_is_illegal (test_arbiter.AdversarialRun)",
+            "test_a_refused_turn_that_reached_the_write_site_is_illegal (test_arbiter.AdversarialRun)"
+          ]
+        },
+        "test-ratchet": {
+          "code": 0,
+          "seconds": 0.3,
+          "evidence": []
+        },
+        "lint": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "hostile-run": {
+          "code": 0,
+          "seconds": 0.11,
+          "evidence": []
+        },
+        "atom-gate-selftest": {
+          "code": 0,
+          "seconds": 0.09,
+          "evidence": []
+        },
+        "milestone-selftest": {
+          "code": 0,
+          "seconds": 0.08,
+          "evidence": []
+        },
+        "graph-current": {
+          "code": 0,
+          "seconds": 0.17,
+          "evidence": []
+        },
+        "data-manifest": {
+          "code": 0,
+          "seconds": 0.16,
+          "evidence": []
+        }
+      }
+    }
+  ]
+}
