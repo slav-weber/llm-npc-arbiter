@@ -28,7 +28,7 @@ def _graph() -> dict:
     except Exception:  # noqa: BLE001 — no graph file -> empty (graceful: retrieval just won't expand)
         return {"nodes": {}, "adj": {}}
     # A readable file of the wrong shape (null, a list, a dict without the two maps) degrades the same
-    # way: found by the seeded-bug round of 2026-09-11, where such a file still raised from expansion.
+    # way: such a file used to pass the load and then raise from every expansion.
     if not (isinstance(graph, dict) and isinstance(graph.get("nodes"), dict)
             and isinstance(graph.get("adj"), dict)):
         return {"nodes": {}, "adj": {}}
