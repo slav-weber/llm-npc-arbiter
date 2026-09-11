@@ -75,6 +75,21 @@ while a gate is red.
 uv run python -m verification.gates
 ```
 
+How much do those gates catch? `verification/seeded_bugs/` plants realistic defects one at a time
+and records which gate stops each. Its catalogue was written by an agent that saw the code, the data
+and the documentation, never the tests.
+
+- **First measurement: 5 of 20.** The hostile table and the tests stopped the three bugs their
+  scenarios exercise directly; two more were stopped only by the atom gate's and the milestone
+  gate's own self-tests, which CI now runs.
+- Nothing stopped a bug in the intent classifier, the response schemas, the result-fact vocabulary
+  or the designer data (a registry guard, an enumeration, a quest's stage labels, the dialect
+  allowlist), nor a loosened verdict of the adversarial run itself.
+- The most instructive miss: the self-test meant to prove that a failed post-assert halts the gate
+  passes for the wrong reason, so removing the halt changes nothing it can see.
+
+Report: `verification/reports/`; every miss with the reason it was missed: `verification/README.md`.
+
 ## What is here
 
 | Part | What it does | Files |
@@ -154,6 +169,8 @@ to the engine. The game's own history is not included.
   given.
 - "0 illegal writes" covers the 17 hostile turns in `adversarial/hostile_runs.py` and the tests
   around them. It is a floor, not a proof of safety: an attack nobody thought of is not in the table.
+  The seeded-bug measurement puts a number on that floor: the gates stop 5 of 20 bugs planted by an
+  author who never saw the tests.
 - The corpus in `knowledge/` is a working extract used to build and demonstrate the graph, not a
   complete dataset, and it is derived from a commercial game's own files.
 - Prompt construction, the dialogue layer, voice, and the bridge to the engine were deliberately

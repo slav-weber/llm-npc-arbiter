@@ -88,6 +88,47 @@ uv run python -m verification.seeded_bugs.run                  # full run, write
 uv run python -m verification.seeded_bugs.run --only A01,A07   # a subset, prints only
 ```
 
+## Measurements
+
+### First measurement: 5 of 20
+
+Report: [`reports/seeded-bugs-2026-09-11.md`](reports/seeded-bugs-2026-09-11.md), measured on git
+`1a7a4c7`. The catalogue was written blind, so this first number was not measured on a training set.
+
+| Area | Planted | Caught |
+|---|---|---|
+| gate | 3 | 1 |
+| loader | 2 | 1 |
+| invariants | 2 | 1 |
+| ledger | 1 | 1 |
+| milestones | 1 | 1 |
+| arbitration | 2 | 0 |
+| registry | 2 | 0 |
+| adversarial run, dialect, dice, knowledge, quests, result facts, schemas | 1 each | 0 |
+
+What stopped the five. The hostile table and the tests caught the three bugs their scenarios
+exercise directly: an unregistered invariant skipped instead of refused (A01), a lesson of 300
+points (A07), an undeclared predicate stored (A08). The other two were caught only by the self-tests
+that CI started running in this round: the atom gate's (A05, a design source made of blank strings)
+and the milestone gate's (A14, the baseline no longer overriding the contaminated fields).
+
+What the gates missed, grouped by the reason nothing failed:
+
+| Why nothing failed | Bugs |
+|---|---|
+| **An assertion that passes for the wrong reason.** The atom gate's self-test proves that a failed post-assert halts further commits by trying a second commit, but that commit declares an invariant the test has just unregistered, so it is refused as unresolved whether the gate halted or not. | A02 |
+| **A scenario that tries an attack in one state only.** "Walk through a closed gate" always passes a party size, so a missing one is never tried (A03). "Grant the reward flag" runs on an untouched quest, so the reward invariant is never tried on a started one (A06). | A03, A06 |
+| **A branch no test drives:** the loader's exemption for guard-free teachers (A04); the difficulty floor (A09: the clamp test checks only that the chance stays within 5..95, and it still does); the graph loader's degradation on a corrupt file (A16). | A04, A09, A16 |
+| **A module no test imports:** the response schemas (A10), the result-fact vocabulary (A11), the intent classifier (A12, A13). The tests and the hostile run import only the atom gate, the dice, the invariants and the ledger. | A10, A11, A12, A13 |
+| **Designer data nobody pins:** the dialect allowlist (A15), a quest's stage labels (A17), a guard in the atom registry (A18), an enumeration in the state registry (A19). The suite loads the data; nothing asserts what it says. | A15, A17, A18, A19 |
+| **The verdict of the adversarial run itself.** Its "illegal" flag is the run's only verdict and the tests reuse it, so loosening it hides two failure modes without changing today's output: a control turn that no longer commits, and a refused turn that still reached the write site. | A20 |
+
+The split is the finding, as in legal-rag-evals: the gates stop the attacks somebody wrote down and
+the properties the self-tests assert. The chokepoint's refusal paths are well covered; what routes a
+turn to it, the vocabularies around it, the designer data and the run that grades it are not. Tests
+for these groups are the next step; after them this catalogue is training data, and the next honest
+number needs a new blind catalogue.
+
 ## What these numbers are not
 
 - They measure the deterministic gates only, not the review layer.
